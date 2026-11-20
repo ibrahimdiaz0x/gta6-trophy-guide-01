@@ -1,237 +1,178 @@
-// Checklist, detail pane and progress rendering for the trophy tracker.
-// The spoiler rule lives here: a story trophy the reader has not earned yet
-// shows a masked name and description while spoilers are hidden.
-export const KIND_LABELS = {
-  story: 'Story',
-  missable: 'Missable',
-  collectibles: 'Collectibles',
-  activities: 'Activities',
-  completion: '100% Completion',
-  online: 'Online',
-  platinum: 'Platinum',
-};
+// Vice Coast tracker rendering: the checklist rows and the guide detail
+// pane. Rows show the official name, description and grade, the kind tags,
+// the target count, the missable flag and the status of the guide. Clicking
+// a row opens its guide in the detail pane; the checkbox only ticks it off.
 
-export function gradeLabel(grade) {
-  return grade.charAt(0).toUpperCase() + grade.slice(1);
+import { gradeLetter, isSpoilerHidden, searchHaystack, trophyMatchesKind, visibleDescription, visibleName, STATUS_LABELS, STATUS_NOTES } from './data.js';
+
+function medalDot(grade) {
+  const dot = document.createElement('span');
+  dot.className = `medal medal-${grade}`;
+  dot.textContent = gradeLetter(grade);
+  dot.title = grade;
+  return dot;
 }
 
-export function isMasked(trophy, state) {
-  return state.spoiler && trophy.kind === 'story' && !state.earned.has(trophy.id);
+function tagChip(text, kind) {
+  const chip = document.createElement('span');
+  chip.className = `tag tag-${kind}`;
+  chip.textContent = text;
+  return chip;
 }
 
-export function formatTarget(trophy) {
-  if (trophy.target === null || trophy.target === undefined) return null;
-  if (trophy.target >= 1000) return trophy.target.toLocaleString('en-US');
-  return String(trophy.target);
+function renderTrophyRow(trophy, ctx) {
+  const { state, onToggle, onSelect } = ctx;
+  const hidden = isSpoilerHidden(trophy, state);
+  const earned = state.earned.has(trophy.name);
+  const row = document.createElement('article');
+  row.className = 'trophy-row' + (earned ? ' is-earned' : '') + (ctx.selected === trophy.name ? ' is-selected' : '');
+  row.dataset.name = trophy.name;
+
+  const box = document.createElement('input');
+  box.type = 'checkbox';
+  box.className = 'earn-box';
+  box.checked = earned;
+  box.setAttribute('aria-label', `Mark ${visibleName(trophy, state)} earned`);
+  box.addEventListener('change', (event) => {
+    event.stopPropagation();
+    onToggle(trophy.name, box.checked);
+  });
+  row.append(box);
+  row.append(medalDot(hidden ? 'bronze' : trophy.grade));
+
+  const body = document.createElement('div');
+  body.className = 'row-body';
+  const name = document.createElement('h3');
+  name.className = 'row-name';
+  name.textContent = visibleName(trophy, state);
+  body.append(name);
+  const desc = document.createElement('p');
+  desc.className = 'row-desc';
+  desc.textContent = visibleDescription(trophy, state);
+  body.append(desc);
+
+  const tags = document.createElement('div');
+  tags.className = 'row-tags';
+  tags.append(tagChip(hidden ? 'Hidden' : trophy.grade, 'grade'));
+  for (const kind of trophy.kinds) tags.append(tagChip(kind, kind));
+  if (trophy.target) tags.append(tagChip(trophy.target, 'target'));
+  if (trophy.missable) tags.append(tagChip('Missable', 'missable'));
+  if (trophy.status !== 'confirmed') tags.append(tagChip(STATUS_LABELS[trophy.status], 'status'));
+  body.append(tags);
+  row.append(body);
+
+  row.addEventListener('click', (event) => {
+    if (event.target === box) return;
+    onSelect(trophy.name);
+  });
+  return row;
 }
 
-export function filterTrophies(trophies, state) {
+export function filterTrophies(trophiesDoc, state) {
   const query = state.query.trim().toLowerCase();
-  return trophies.filter((trophy) => {
-    if (state.kind === 'missable' && !trophy.missable) return false;
-    if (state.kind === 'online') return false;
-    if (state.kind !== 'all' && state.kind !== 'missable' && trophy.kind !== state.kind) return false;
+  return trophiesDoc.trophies.filter((trophy) => {
+    if (!trophyMatchesKind(trophy, state.kind)) return false;
     if (state.grade !== 'all' && trophy.grade !== state.grade) return false;
-    if (state.earnedOnly && !state.earned.has(trophy.id)) return false;
-    if (state.unconfirmedOnly && !trophy.unconfirmed) return false;
-    if (query) {
-      const haystack = `${trophy.name} ${trophy.description}`.toLowerCase();
-      if (!haystack.includes(query)) return false;
-    }
+    if (state.show === 'earned' && !state.earned.has(trophy.name)) return false;
+    if (state.show === 'todo' && state.earned.has(trophy.name)) return false;
+    if (query && !searchHaystack(trophy).includes(query)) return false;
     return true;
   });
 }
 
-function badge(text, className) {
-  const span = document.createElement('span');
-  span.className = `badge ${className}`;
-  span.textContent = text;
-  return span;
-}
-
-function buildRow(trophy, state, callbacks) {
-  const item = document.createElement('li');
-  const row = document.createElement('button');
-  row.type = 'button';
-  row.className = 'trophy-row';
-  if (state.earned.has(trophy.id)) row.classList.add('is-earned');
-  if (state.selectedId === trophy.id) row.classList.add('is-selected');
-  row.addEventListener('click', () => callbacks.onSelect(trophy.id));
-
-  const check = document.createElement('span');
-  check.className = 'trophy-check';
-  check.textContent = state.earned.has(trophy.id) ? '✓' : '';
-  check.title = state.earned.has(trophy.id) ? 'Earned — click to unmark' : 'Mark as earned';
-  check.addEventListener('click', (event) => {
-    event.stopPropagation();
-    callbacks.onToggleEarned(trophy.id);
-  });
-  row.appendChild(check);
-
-  const main = document.createElement('div');
-  main.className = 'trophy-main';
-  const masked = isMasked(trophy, state);
-
-  const name = document.createElement('div');
-  name.className = 'trophy-name';
-  name.textContent = masked ? 'Hidden story trophy' : trophy.name;
-  main.appendChild(name);
-
-  const desc = document.createElement('div');
-  desc.className = 'trophy-desc';
-  desc.textContent = masked ? 'Earn this trophy to reveal its name and description.' : trophy.description;
-  main.appendChild(desc);
-
-  const meta = document.createElement('div');
-  meta.className = 'trophy-meta';
-  meta.appendChild(badge(masked ? 'Hidden' : gradeLabel(trophy.grade), masked ? 'kind' : `grade-${trophy.grade}`));
-  meta.appendChild(badge(KIND_LABELS[trophy.kind] || trophy.kind, 'kind'));
-  if (trophy.missable) meta.appendChild(badge('Missable', 'missable'));
-  if (trophy.unconfirmed) meta.appendChild(badge('Unconfirmed', 'unconfirmed'));
-  main.appendChild(meta);
-
-  if (trophy.target !== null && trophy.target !== undefined) {
-    const count = document.createElement('div');
-    count.className = 'trophy-count';
-    const current = state.counts[trophy.id] || 0;
-    count.textContent = `Progress: ${current.toLocaleString('en-US')} / ${formatTarget(trophy)}`;
-    main.appendChild(count);
-  }
-
-  row.appendChild(main);
-  item.appendChild(row);
-  return item;
-}
-
-export function renderTrophyList(listEl, emptyEl, summaryEl, onlineNoteEl, trophies, state, callbacks) {
-  const shown = filterTrophies(trophies, state);
-  listEl.replaceChildren(...shown.map((trophy) => buildRow(trophy, state, callbacks)));
-  emptyEl.hidden = shown.length > 0;
-  onlineNoteEl.hidden = state.kind !== 'online';
-  const earnedShown = shown.filter((trophy) => state.earned.has(trophy.id)).length;
-  summaryEl.textContent =
-    state.kind === 'online'
-      ? 'Showing the Online filter: 0 trophies.'
-      : `Showing ${shown.length} of ${trophies.length} trophies (${earnedShown} earned).`;
-}
-
-export function renderProgress(countEl, fillEl, breakdownEl, trophies, state) {
-  const total = trophies.length;
-  const earned = trophies.filter((trophy) => state.earned.has(trophy.id)).length;
-  countEl.textContent = `${earned} / ${total}`;
-  fillEl.style.width = total === 0 ? '0%' : `${Math.round((earned / total) * 100)}%`;
-  const byGrade = {};
-  for (const trophy of trophies) {
-    byGrade[trophy.grade] = byGrade[trophy.grade] || { earned: 0, total: 0 };
-    byGrade[trophy.grade].total += 1;
-    if (state.earned.has(trophy.id)) byGrade[trophy.grade].earned += 1;
-  }
-  breakdownEl.textContent = ['platinum', 'gold', 'silver', 'bronze']
-    .map((grade) => `${gradeLabel(grade)} ${byGrade[grade].earned}/${byGrade[grade].total}`)
-    .join(' · ');
-}
-
-export function renderDetail(paneEl, trophy, state, callbacks) {
-  paneEl.replaceChildren();
-  if (!trophy) {
+export function renderTrackerList(listEl, trophiesDoc, ctx) {
+  const shown = filterTrophies(trophiesDoc, ctx.state);
+  listEl.replaceChildren();
+  if (shown.length === 0) {
     const empty = document.createElement('p');
-    empty.className = 'detail-empty';
-    empty.textContent = 'Select a trophy on the left to read its guide and sources.';
-    paneEl.appendChild(empty);
+    empty.className = 'empty-note';
+    empty.textContent = 'No trophies match these filters. Try clearing the search or choosing another kind — the Online filter is empty on purpose: the official list has no online trophies.';
+    listEl.append(empty);
+    return { shown: 0, total: trophiesDoc.trophies.length };
+  }
+  for (const trophy of shown) listEl.append(renderTrophyRow(trophy, ctx));
+  return { shown: shown.length, total: trophiesDoc.trophies.length };
+}
+
+function sourceLink(source) {
+  const link = document.createElement('a');
+  link.href = source.url;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.textContent = source.name;
+  return link;
+}
+
+export function renderDetailPane(paneEl, trophiesDoc, ctx) {
+  const { state, onToggle } = ctx;
+  paneEl.replaceChildren();
+  const trophy = trophiesDoc.trophies.find((item) => item.name === ctx.selected) ?? null;
+  if (!trophy) {
+    const hint = document.createElement('div');
+    hint.className = 'detail-empty';
+    const heading = document.createElement('h2');
+    heading.textContent = 'Pick a trophy to read its guide';
+    hint.append(heading);
+    const text = document.createElement('p');
+    text.textContent = 'Click any trophy in the list. Each guide is written in our own words, says where its facts come from, and says plainly when a method is not yet confirmed.';
+    hint.append(text);
+    paneEl.append(hint);
     return;
   }
+  const hidden = isSpoilerHidden(trophy, state);
+  const earned = state.earned.has(trophy.name);
 
-  const masked = isMasked(trophy, state);
-  const heading = document.createElement('h3');
-  heading.textContent = masked ? 'Hidden story trophy' : trophy.name;
-  paneEl.appendChild(heading);
+  const head = document.createElement('div');
+  head.className = 'detail-head';
+  head.append(medalDot(hidden ? 'bronze' : trophy.grade));
+  const title = document.createElement('h2');
+  title.textContent = visibleName(trophy, state);
+  head.append(title);
+  paneEl.append(head);
 
-  const meta = document.createElement('div');
-  meta.className = 'trophy-meta';
-  meta.appendChild(badge(masked ? 'Hidden' : gradeLabel(trophy.grade), masked ? 'kind' : `grade-${trophy.grade}`));
-  meta.appendChild(badge(KIND_LABELS[trophy.kind] || trophy.kind, 'kind'));
-  if (trophy.missable) meta.appendChild(badge('Missable', 'missable'));
-  if (trophy.unconfirmed) meta.appendChild(badge('Unconfirmed method', 'unconfirmed'));
-  paneEl.appendChild(meta);
+  const meta = document.createElement('p');
+  meta.className = 'detail-meta';
+  meta.textContent = hidden ? 'Hidden story trophy — earn it to reveal the guide.' : `${trophy.grade} · ${trophy.kinds.join(', ')}${trophy.missable ? ' · Missable' : ''}${trophy.target ? ` · ${trophy.target}` : ''}`;
+  paneEl.append(meta);
 
-  const official = document.createElement('p');
-  official.className = 'detail-official';
-  official.textContent = masked
-    ? 'Official description hidden until earned.'
-    : `Official description: “${trophy.description}”`;
-  paneEl.appendChild(official);
+  const desc = document.createElement('p');
+  desc.className = 'detail-desc';
+  desc.textContent = visibleDescription(trophy, state);
+  paneEl.append(desc);
 
-  if (masked) {
-    const locked = document.createElement('p');
-    locked.className = 'detail-guide';
-    locked.textContent =
-      'Spoilers are hidden. Earn this trophy — or switch the spoiler setting off — to read its guide and sources.';
-    paneEl.appendChild(locked);
-    return;
-  }
+  if (!hidden) {
+    const status = document.createElement('p');
+    status.className = `status-line status-${trophy.status}`;
+    status.textContent = `${STATUS_LABELS[trophy.status]} — ${STATUS_NOTES[trophy.status]}`;
+    paneEl.append(status);
 
-  if (trophy.target !== null && trophy.target !== undefined) {
-    const row = document.createElement('div');
-    row.className = 'counter-row';
-    const minus = document.createElement('button');
-    minus.type = 'button';
-    minus.textContent = '−';
-    minus.setAttribute('aria-label', 'Decrease count');
-    minus.addEventListener('click', () => callbacks.onCount(trophy.id, -1));
-    const value = document.createElement('strong');
-    const current = state.counts[trophy.id] || 0;
-    value.textContent = `${current.toLocaleString('en-US')} / ${formatTarget(trophy)}`;
-    const plus = document.createElement('button');
-    plus.type = 'button';
-    plus.textContent = '+';
-    plus.setAttribute('aria-label', 'Increase count');
-    plus.addEventListener('click', () => callbacks.onCount(trophy.id, 1));
-    row.append(minus, value, plus);
-    paneEl.appendChild(row);
-  }
+    const guideHeading = document.createElement('h3');
+    guideHeading.textContent = 'Guide';
+    paneEl.append(guideHeading);
+    const guide = document.createElement('p');
+    guide.className = 'detail-guide';
+    guide.textContent = trophy.guide;
+    paneEl.append(guide);
 
-  const guide = document.createElement('p');
-  guide.className = 'detail-guide';
-  guide.textContent = trophy.guide;
-  paneEl.appendChild(guide);
-
-  if (trophy.missable) {
-    const warn = document.createElement('p');
-    warn.className = 'notice';
-    warn.textContent =
-      'Missable warning: this is the one trophy early guides flag as possibly missable. Do it as you go — see the Missables page.';
-    paneEl.appendChild(warn);
-  }
-  if (trophy.unconfirmed) {
-    const note = document.createElement('p');
-    note.className = 'notice';
-    note.textContent =
-      'Not yet confirmed in the game: the exact method is still being checked by early guides. This guide says so rather than guessing.';
-    paneEl.appendChild(note);
-  }
-
-  if (Array.isArray(trophy.sources) && trophy.sources.length > 0) {
-    const sourcesBox = document.createElement('div');
-    sourcesBox.className = 'detail-sources';
-    const title = document.createElement('h4');
-    title.textContent = 'Sources';
-    sourcesBox.appendChild(title);
+    const sourcesHeading = document.createElement('h3');
+    sourcesHeading.textContent = 'Sources';
+    paneEl.append(sourcesHeading);
     const list = document.createElement('ul');
-    for (const source of trophy.sources) {
+    list.className = 'source-list';
+    for (const key of trophy.sources) {
+      const source = trophiesDoc.sourceList[key];
+      if (!source) continue;
       const item = document.createElement('li');
-      if (source.url) {
-        const link = document.createElement('a');
-        link.href = source.url;
-        link.target = '_blank';
-        link.rel = 'noopener';
-        link.textContent = source.label;
-        item.appendChild(link);
-      } else {
-        item.textContent = source.label;
-      }
-      list.appendChild(item);
+      item.append(sourceLink(source));
+      list.append(item);
     }
-    sourcesBox.appendChild(list);
-    paneEl.appendChild(sourcesBox);
+    paneEl.append(list);
   }
+
+  const toggleButton = document.createElement('button');
+  toggleButton.type = 'button';
+  toggleButton.className = 'primary-btn';
+  toggleButton.textContent = earned ? 'Mark as not earned' : 'Mark as earned';
+  toggleButton.addEventListener('click', () => onToggle(trophy.name, !earned));
+  paneEl.append(toggleButton);
 }

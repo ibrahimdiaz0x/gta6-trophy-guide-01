@@ -1,42 +1,42 @@
-# Vice Coast — GTA 6 Trophy Guide & Tracker
+# Vice Coast Trophy Guide
 
-[![make.fun — gta6-trophy-guide-01](https://img.shields.io/badge/make.fun-gta6--trophy--guide--01-orange)](https://make.fun/bounty/gta6-trophy-guide-01)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Offline](https://img.shields.io/badge/offline-static%20app-brightgreen)](app/index.html)
+[![make.fun](https://make.fun/badge/gta6-trophy-guide-01.svg)](https://make.fun/c/gta6-trophy-guide-01)
+[![rank](https://make.fun/badge/gta6-trophy-guide-01/ibrahimdiaz0x/gta6-trophy-guide-01/rank.svg)](https://make.fun/c/gta6-trophy-guide-01)
+[![reward](https://make.fun/badge/gta6-trophy-guide-01/ibrahimdiaz0x/gta6-trophy-guide-01/reward.svg)](https://make.fun/c/gta6-trophy-guide-01)
 
-An unofficial, fan-made offline guide and tracker for all **55 PlayStation 5 trophies** of **Grand Theft Auto VI** (1 platinum, 2 gold, 6 silver, 46 bronze) — built for the [make.fun](https://make.fun/bounty/gta6-trophy-guide-01) bounty `gta6-trophy-guide-01`.
+An offline, open-source guide and tracker for all 55 PlayStation 5 trophies of **Grand Theft Auto VI** (1 platinum, 2 gold, 6 silver, 46 bronze, 28 hidden, 0 online) — an entry for [make.fun's GTA 6 trophy guide competition](https://make.fun/c/gta6-trophy-guide-01).
 
 ## What it is
 
-- **Tracker** — a checklist of every trophy with its official name, description and grade. Progress is saved in the browser (localStorage), with export to a file and import back. Counters track partial progress (42 Shooting Range golds, 250 stunts, 100 WAiNK scans…).
-- **Filters** — by kind (story, missable, collectibles, activities, 100% completion, online), by grade, by earned state, by unconfirmed methods, and by search. The Online filter is empty on purpose: GTA 6 has no online trophies.
+- **Tracker** — a checklist of every trophy with its official name, description and grade. Progress is saved in the browser (localStorage) and can be exported to a file and imported back.
+- **Filters** — by kind (story, missable, collectibles, activities, online), by grade, by earned state, plus full-text search.
 - **Spoiler setting** — hides the names and descriptions of story trophies until they are earned.
-- **Roadmap to the Platinum** — seven stages in order, from the opening mission to 100% completion, built from the official trophy descriptions.
-- **Missables** — the one trophy early guides flag as possibly missable (*Positive Mental Attitude*: meditate at every spot, from Chapter 1), and how to protect it.
-- **Cited guides** — every trophy has a guide in this entry's own words, with its sources named beside it (Exophase and PSNProfiles for the official list; PowerPyx, Push Square, KeenGamer and others for methods). Where a method is not yet confirmed in the game, the trophy is flagged **Unconfirmed** and the guide says so plainly instead of guessing.
+- **Roadmap to the platinum** — three stages (story, 100% checklist, cleanup) with time estimates, built from the official descriptions and the cited guides.
+- **Missables** — the one trophy reported as possibly missable (Positive Mental Attitude) is called out, with the Chapter 1 meditation to do first.
+- **A guide for every trophy** — written in our own words, each with its sources named beside it. Methods that players have not yet confirmed are labelled as such instead of being presented as fact.
+
+## Sources
+
+Names, descriptions and grades as listed by [Exophase](https://www.exophase.com/game/grand-theft-auto-vi-psn/trophies/) and [PSNProfiles](https://psnprofiles.com/trophies/43531-grand-theft-auto-vi). Methods and counts from [PowerPyx](https://www.powerpyx.com/gta-6-grand-theft-auto-vi-trophy-guide-roadmap/), [GTA Zone](https://gta-zone.com/news/gta-6-trophies-achievements/), [PushSquare](https://www.pushsquare.com/guides/gta-6-trophy-guide-and-roadmap) and [KeenGamer](https://www.keengamer.com/articles/guides/gta-6-trophy-guide-platinum-roadmap-all-55-trophies/). Sources are cited beside each guide in the app; no guide text is copied.
 
 ## Run it
 
-Static files under `app/` — no build step, no network at run time:
+The guide is static files under `app/` with no build step. Serve it and open it in a desktop browser:
 
 ```sh
 node serve.ts
-# open http://localhost:8080
+# then open http://localhost:8080
 ```
 
-Or open `app/index.html` from any static file server with `app/` at its root.
+It works with the network off: it loads only its own files and makes no network request while it runs. No Rockstar logo or official artwork is used anywhere.
 
-## Hand it in
+## Hand in
+
+`main.ts` (Node 22, standard library only) copies `app/` and `screenshots/` to `/output` and writes `/output/dossier.json` with the vendored make.fun library:
 
 ```sh
 mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
-
-`main.ts` (Node 22, standard library only) copies `app/` and `screenshots/` to the output directory and writes `dossier.json` with the vendored `vendor/makefun-frontend.ts` library.
-
-## Honesty note
-
-The game released on 19 November 2026, a day before this guide was written. Names, descriptions and grades are the official list as published via Exophase and PSNProfiles. Methods that early guides have not yet confirmed are flagged, not invented. This guide uses no Rockstar logo, artwork or game screenshots.
 
 ## License
 

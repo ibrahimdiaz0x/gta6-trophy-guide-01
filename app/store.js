@@ -1,79 +1,92 @@
-// Progress store for the Vice Coast trophy tracker.
-// Everything lives in localStorage on the reader's own machine; nothing
-// leaves the browser except an export file the reader asks for.
-export const STORAGE_KEY = 'vice-coast-trophy-guide-v1';
+// Vice Coast progress store: the earned set lives in localStorage, and it
+// can be exported to a file and imported back. The store knows nothing
+// about the page; it only keeps a set of trophy names and persists it.
 
-export const DEMO_EARNED = [2, 3, 8, 15, 17, 21, 33, 35, 36, 41, 42, 52, 53];
-export const DEMO_COUNTS = { 15: 120, 17: 20, 25: 3, 30: 1, 31: 40, 32: 22, 35: 55 };
+export function createProgressStore(storageKey) {
+  let earned = new Set();
+  let spoilers = true;
 
-export function loadProgress() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') return null;
-    return {
-      earned: Array.isArray(parsed.earned) ? parsed.earned.filter((n) => Number.isInteger(n)) : [],
-      counts: parsed.counts && typeof parsed.counts === 'object' ? parsed.counts : {},
-      spoiler: parsed.spoiler === true,
-    };
-  } catch {
-    return null;
+  function readStored() {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
   }
-}
 
-export function saveProgress(state) {
-  const payload = {
-    earned: [...state.earned].sort((a, b) => a - b),
-    counts: state.counts,
-    spoiler: state.spoiler,
-    savedAt: new Date().toISOString(),
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  return payload;
-}
+  function load() {
+    const stored = readStored();
+    if (stored && Array.isArray(stored.earned)) earned = new Set(stored.earned);
+    if (stored && typeof stored.spoilers === 'boolean') spoilers = stored.spoilers;
+    return { earned, spoilers };
+  }
 
-export function seedDemoProgress() {
-  return {
-    earned: [...DEMO_EARNED],
-    counts: { ...DEMO_COUNTS },
-    spoiler: false,
-  };
-}
+  function save() {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({ earned: [...earned], spoilers }));
+    } catch {
+      // Private browsing or a full store: progress still works for the session.
+    }
+  }
 
-export function downloadExport(payload) {
-  const text = JSON.stringify(payload, null, 2);
-  const blob = new Blob([text], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'vice-coast-trophy-progress.json';
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
+  function toggle(name) {
+    if (earned.has(name)) earned.delete(name);
+    else earned.add(name);
+    save();
+  }
 
-export function parseImportText(text) {
-  const parsed = JSON.parse(text);
-  if (!parsed || typeof parsed !== 'object') throw new Error('Not a progress file.');
-  const earned = Array.isArray(parsed.earned) ? parsed.earned.filter((n) => Number.isInteger(n)) : [];
-  const counts = parsed.counts && typeof parsed.counts === 'object' ? parsed.counts : {};
-  const spoiler = parsed.spoiler === true;
-  return { earned, counts, spoiler };
-}
+  function setEarned(name, value) {
+    if (value) earned.add(name);
+    else earned.delete(name);
+    save();
+  }
 
-export function readImportFile(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        resolve(parseImportText(String(reader.result)));
-      } catch (error) {
-        reject(error);
-      }
+  function setSpoilers(value) {
+    spoilers = Boolean(value);
+    save();
+  }
+
+  function reset() {
+    earned = new Set();
+    save();
+  }
+
+  function exportFile() {
+    const payload = {
+      app: 'Vice Coast Trophy Guide',
+      exportedAt: new Date().toISOString(),
+      earned: [...earned],
     };
-    reader.onerror = () => reject(new Error('Could not read that file.'));
-    reader.readAsText(file);
-  });
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'vice-coast-progress.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Reads an exported file and returns { ok, imported, rejected }.
+  // Only names that exist in the guide are kept; anything else is rejected
+  // and reported, so a file from another guide cannot corrupt the tracker.
+  async function importFile(file, knownNames) {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    const names = Array.isArray(parsed) ? parsed : parsed.earned;
+    if (!Array.isArray(names)) throw new Error('That file has no earned list in it.');
+    const known = new Set(knownNames);
+    const imported = [];
+    const rejected = [];
+    for (const name of names) {
+      if (typeof name === 'string' && known.has(name)) imported.push(name);
+      else rejected.push(String(name));
+    }
+    earned = new Set(imported);
+    save();
+    return { ok: true, imported: imported.length, rejected };
+  }
+
+  return { load, save, toggle, setEarned, setSpoilers, reset, exportFile, importFile, get earned() { return earned; }, get spoilers() { return spoilers; } };
 }

@@ -1,188 +1,187 @@
-// Roadmap, missables and about pages, built from the official descriptions
-// in app/data/roadmap.json and the trophy list itself.
-import { KIND_LABELS } from './render.js';
+// Vice Coast roadmap, missables and sources views: the platinum plan built
+// from the official descriptions and the cited guides, the one possibly
+// missable trophy called out, and an honest note about what is confirmed.
 
-function trophyById(trophies, id) {
-  return trophies.find((trophy) => trophy.id === id);
+import { trophyById, isSpoilerHidden } from './data.js';
+
+function statCard(value, label) {
+  const card = document.createElement('div');
+  card.className = 'stat-card';
+  const big = document.createElement('div');
+  big.className = 'stat-value';
+  big.textContent = value;
+  const small = document.createElement('div');
+  small.className = 'stat-label';
+  small.textContent = label;
+  card.append(big, small);
+  return card;
 }
 
-function stageTrophyChip(trophy, state, onSelect) {
+function trophyChip(trophy, state, onSelect) {
   const chip = document.createElement('button');
   chip.type = 'button';
-  chip.className = 'stage-trophy';
-  if (state.earned.has(trophy.id)) chip.classList.add('is-earned');
-  chip.textContent = `${state.earned.has(trophy.id) ? '✓ ' : ''}${trophy.name}`;
-  chip.addEventListener('click', () => onSelect(trophy.id));
+  chip.className = 'trophy-chip' + (state.earned.has(trophy.name) ? ' is-earned' : '');
+  // The spoiler setting hides story names everywhere, roadmap chips included.
+  chip.textContent = isSpoilerHidden(trophy, state)
+    ? 'Hidden story trophy'
+    : `${state.earned.has(trophy.name) ? '✓ ' : ''}${trophy.name}`;
+  chip.addEventListener('click', () => onSelect(trophy.name));
   return chip;
 }
 
-export function renderRoadmap(listEl, roadmap, trophies, state, onSelect) {
-  listEl.replaceChildren();
-  for (const stage of roadmap.stages) {
-    const item = document.createElement('li');
-    item.className = 'roadmap-stage';
-
-    const heading = document.createElement('h3');
-    const num = document.createElement('span');
-    num.className = 'stage-num';
-    num.textContent = `Stage ${stage.stage}`;
-    heading.append(num, document.createTextNode(stage.title));
-    item.appendChild(heading);
-
-    const earnedInStage = stage.trophies.filter((id) => state.earned.has(id)).length;
-    const progress = document.createElement('p');
-    progress.className = 'stage-progress';
-    progress.textContent = `${earnedInStage} of ${stage.trophies.length} trophies in this stage earned`;
-    item.appendChild(progress);
-
-    const summary = document.createElement('p');
-    summary.textContent = stage.summary;
-    item.appendChild(summary);
-
-    const chips = document.createElement('div');
-    chips.className = 'stage-trophies';
-    for (const id of stage.trophies) {
-      const trophy = trophyById(trophies, id);
-      if (trophy) chips.appendChild(stageTrophyChip(trophy, state, onSelect));
-    }
-    item.appendChild(chips);
-
-    const tip = document.createElement('p');
-    tip.className = 'stage-tip';
-    const tipLabel = document.createElement('strong');
-    tipLabel.textContent = 'Tip: ';
-    tip.append(tipLabel, document.createTextNode(stage.tip));
-    item.appendChild(tip);
-
-    listEl.appendChild(item);
-  }
-}
-
-export function renderMissables(boxEl, roadmap, trophies, state, onSelect) {
-  boxEl.replaceChildren();
-  const miss = roadmap.missables;
-  const trophy = trophyById(trophies, miss.trophy);
-
-  const facts = document.createElement('table');
-  facts.className = 'fact-table';
-  const rows = [
-    ['Difficulty', roadmap.facts.difficulty],
-    ['Time to platinum', roadmap.facts.time],
-    ['Online trophies', roadmap.facts.online],
-    ['Playthroughs', roadmap.facts.playthroughs],
-    ['Possibly missable', roadmap.facts.missable],
-  ];
-  for (const [label, value] of rows) {
-    const row = document.createElement('tr');
-    const head = document.createElement('th');
-    head.textContent = label;
-    const cell = document.createElement('td');
-    cell.textContent = value;
-    row.append(head, cell);
-    facts.appendChild(row);
-  }
-  boxEl.appendChild(facts);
-
-  const heading = document.createElement('h3');
-  heading.textContent = miss.title;
-  boxEl.appendChild(heading);
-
-  const warning = document.createElement('p');
-  warning.textContent = miss.warning;
-  boxEl.appendChild(warning);
-
-  if (trophy) {
-    const chipRow = document.createElement('p');
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.className = 'stage-trophy';
-    chip.textContent = state.earned.has(trophy.id) ? `✓ ${trophy.name}` : trophy.name;
-    chip.addEventListener('click', () => onSelect(trophy.id));
-    chipRow.appendChild(chip);
-    boxEl.appendChild(chipRow);
-  }
-
-  const list = document.createElement('ul');
-  for (const advice of miss.advice) {
-    const item = document.createElement('li');
-    item.textContent = advice;
-    list.appendChild(item);
-  }
-  boxEl.appendChild(list);
-
-  const safe = document.createElement('p');
-  safe.textContent = miss.safeNote;
-  boxEl.appendChild(safe);
-}
-
-export function renderAbout(boxEl, roadmap) {
-  boxEl.replaceChildren();
+export function renderRoadmap(container, trophiesDoc, roadmapDoc, ctx) {
+  container.replaceChildren();
+  const { state, onSelect } = ctx;
 
   const intro = document.createElement('p');
-  intro.textContent =
-    'Vice Coast is a fan-made, offline guide and tracker for the 55 PlayStation 5 trophies of Grand Theft Auto VI. ' +
-    'Your progress is saved in this browser only (localStorage). Export it to a file to back it up or move it to another browser, and import it back the same way. ' +
-    'The app fetches nothing over the network: every file it loads sits under app/, and the only links that leave the page are the source links you choose to follow.';
-  boxEl.appendChild(intro);
+  intro.className = 'view-intro';
+  intro.textContent = 'The road to the platinum, in the order PowerPyx lays it out: finish the story first, then the 100% checklist, then the stranger strands and the cleanup. One playthrough is enough.';
+  container.append(intro);
 
-  const honest = document.createElement('h3');
-  honest.textContent = 'An honest note on what is confirmed';
-  boxEl.appendChild(honest);
-  const honestText = document.createElement('p');
-  honestText.textContent =
-    'The game released on 19 November 2026, a day before this guide was written. Trophy names, descriptions and grades are the official list, ' +
-    'and the counts (42 Shooting Range challenges, 250 stunts, 100 WAiNK locations) come from the official list and the trackers that publish it. ' +
-    'Where a method is not yet confirmed in the game, the trophy carries an Unconfirmed badge and its guide says so plainly instead of inventing steps. ' +
-    'Story trophies hide behind the spoiler setting until you earn them, so the guide stays safe to browse mid-playthrough.';
-  boxEl.appendChild(honestText);
+  const stats = document.createElement('div');
+  stats.className = 'stat-grid';
+  stats.append(
+    statCard('~200 h', 'to the platinum'),
+    statCard('4 / 10', 'difficulty (PowerPyx)'),
+    statCard('1', 'playthrough needed'),
+    statCard('0', 'online trophies'),
+    statCard('1', 'possibly missable'),
+  );
+  container.append(stats);
 
-  const how = document.createElement('h3');
-  how.textContent = 'How to use this guide';
-  boxEl.appendChild(how);
-  const howList = document.createElement('ul');
-  for (const step of [
-    'Tracker: tick trophies off as you earn them. Use the counters on trophies with a target (42 golds, 250 stunts, 100 scans) to track partial progress.',
-    'Filters: narrow the list by kind — story, missable, collectibles, activities, 100% completion or online — by grade, by earned state, or by search.',
-    'Spoilers: turn on “Hide story spoilers” and story trophies stay masked until you earn them.',
-    'Roadmap: six stages in order, from the opening mission to 100% completion and the platinum.',
-    'Missables: the one trophy that might be missable, and how to protect it from Chapter 1.',
-  ]) {
-    const item = document.createElement('li');
-    item.textContent = step;
-    howList.appendChild(item);
-  }
-  boxEl.appendChild(howList);
-
-  const sourcesTitle = document.createElement('h3');
-  sourcesTitle.textContent = 'Sources for this guide';
-  boxEl.appendChild(sourcesTitle);
-  const sourcesIntro = document.createElement('p');
-  sourcesIntro.textContent =
-    'Every trophy cites its sources beside its guide. The full list of sources used across the guide:';
-  boxEl.appendChild(sourcesIntro);
-  const sourcesList = document.createElement('ul');
-  for (const source of roadmap.sources) {
-    const item = document.createElement('li');
-    if (source.url) {
-      const link = document.createElement('a');
-      link.href = source.url;
-      link.target = '_blank';
-      link.rel = 'noopener';
-      link.textContent = source.label;
-      item.appendChild(link);
-    } else {
-      item.textContent = source.label;
+  for (const stage of roadmapDoc.stages) {
+    const section = document.createElement('section');
+    section.className = 'roadmap-stage';
+    const heading = document.createElement('h2');
+    heading.textContent = `${stage.title} — ${stage.hours}`;
+    section.append(heading);
+    const body = document.createElement('p');
+    body.textContent = stage.body;
+    section.append(body);
+    const tips = document.createElement('ul');
+    tips.className = 'tip-list';
+    for (const tip of stage.tips) {
+      const item = document.createElement('li');
+      item.textContent = tip;
+      tips.append(item);
     }
-    sourcesList.appendChild(item);
+    section.append(tips);
+    const chips = document.createElement('div');
+    chips.className = 'chip-row';
+    for (const id of stage.trophyIds) {
+      const trophy = trophyById(trophiesDoc, id);
+      if (trophy) chips.append(trophyChip(trophy, state, onSelect));
+    }
+    section.append(chips);
+    container.append(section);
   }
-  boxEl.appendChild(sourcesList);
 
-  const kinds = document.createElement('p');
-  kinds.textContent =
-    'Kinds used by the filters: ' +
-    Object.entries(KIND_LABELS)
-      .map(([key, label]) => `${label} (${key})`)
-      .join(', ') +
-    '. A trophy has one kind; the Missable filter cuts across kinds, and the Online filter is empty on purpose — GTA 6 has no online trophies.';
-  boxEl.appendChild(kinds);
+  const notesHeading = document.createElement('h2');
+  notesHeading.textContent = 'Good to know before you start';
+  container.append(notesHeading);
+  const notes = document.createElement('ul');
+  notes.className = 'tip-list';
+  for (const note of roadmapDoc.notes) {
+    const item = document.createElement('li');
+    item.textContent = note;
+    notes.append(item);
+  }
+  container.append(notes);
+}
+
+export function renderMissables(container, trophiesDoc, ctx) {
+  container.replaceChildren();
+  const { state, onSelect } = ctx;
+  const missable = trophiesDoc.trophies.filter((trophy) => trophy.missable);
+
+  const intro = document.createElement('p');
+  intro.className = 'view-intro';
+  intro.textContent = 'Only one trophy is reported as possibly missable. Everything else can be cleaned up in free-roam after the story, because there is no point of no return for the rest of the list.';
+  container.append(intro);
+
+  for (const trophy of missable) {
+    const card = document.createElement('section');
+    card.className = 'missable-card';
+    const heading = document.createElement('h2');
+    heading.textContent = `⚠ ${trophy.name} — possibly missable`;
+    card.append(heading);
+    const desc = document.createElement('p');
+    desc.className = 'detail-desc';
+    desc.textContent = trophy.description;
+    card.append(desc);
+    const guide = document.createElement('p');
+    guide.className = 'detail-guide';
+    guide.textContent = trophy.guide;
+    card.append(guide);
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.className = 'primary-btn';
+    open.textContent = state.earned.has(trophy.name) ? '✓ Earned — open in tracker' : 'Open in tracker';
+    open.addEventListener('click', () => onSelect(trophy.name));
+    card.append(open);
+    container.append(card);
+  }
+
+  const safeHeading = document.createElement('h2');
+  safeHeading.textContent = 'Why the rest are safe';
+  container.append(safeHeading);
+  const safe = document.createElement('ul');
+  safe.className = 'tip-list';
+  const points = [
+    'Story trophies pop automatically when their chapter or mission ends — finishing the story earns them all.',
+    'After the final mission you return to the open world, and the 100% checklist stays available.',
+    'Collectibles, activities, robberies and challenges can all be done in free-roam after the story.',
+    'Cheats disable trophies and saving, so keep them off for the whole run.',
+  ];
+  for (const point of points) {
+    const item = document.createElement('li');
+    item.textContent = point;
+    safe.append(item);
+  }
+  container.append(safe);
+}
+
+export function renderSources(container, trophiesDoc) {
+  container.replaceChildren();
+  const intro = document.createElement('p');
+  intro.className = 'view-intro';
+  intro.textContent = 'How this guide was built, and where every fact comes from. The game released on 19 November 2026, so methods that players have not yet confirmed are labelled as such instead of being presented as fact.';
+  container.append(intro);
+
+  const heading = document.createElement('h2');
+  heading.textContent = 'Sources';
+  container.append(heading);
+  const list = document.createElement('ul');
+  list.className = 'source-list';
+  for (const key of Object.keys(trophiesDoc.sourceList)) {
+    const source = trophiesDoc.sourceList[key];
+    const item = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = source.url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = source.name;
+    item.append(link);
+    list.append(item);
+  }
+  container.append(list);
+
+  const notesHeading = document.createElement('h2');
+  notesHeading.textContent = 'Honesty notes';
+  container.append(notesHeading);
+  const notes = document.createElement('ul');
+  notes.className = 'tip-list';
+  const points = [
+    'Names, descriptions and grades are shown exactly as Exophase and PSNProfiles list them — the two agree on every entry.',
+    '28 of the 55 trophies are hidden on PlayStation until earned (27 bronze, 1 gold). The spoiler setting hides the story trophies until you earn them.',
+    'Every guide is written in our own words for this entry. Sources are cited beside each guide, never copied.',
+    'No Rockstar logo, official artwork or game screenshot is used anywhere in this guide. The look is our own.',
+    'The guide is a static app that works offline: it loads only its own files and makes no network request while it runs.',
+  ];
+  for (const point of points) {
+    const item = document.createElement('li');
+    item.textContent = point;
+    notes.append(item);
+  }
+  container.append(notes);
 }

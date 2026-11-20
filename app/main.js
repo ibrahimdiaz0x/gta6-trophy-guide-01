@@ -1,229 +1,188 @@
-// Vice Coast boot: loads the trophy list and roadmap, wires the tracker,
-// the spoiler setting, export/import and hash routing. No network requests
-// beyond the app's own files (./data/trophies.json, ./data/roadmap.json).
-import { loadProgress, saveProgress, seedDemoProgress, downloadExport, readImportFile } from './store.js';
-import { renderTrophyList, renderDetail, renderProgress } from './render.js';
-import { renderRoadmap, renderMissables, renderAbout } from './roadmap.js';
+// Vice Coast Trophy Guide — boot and shell.
+// The guide is a static offline app: it fetches only its own data files,
+// keeps progress in localStorage, and renders the tracker, the roadmap,
+// the missables and the sources from them.
 
-const params = new URLSearchParams(location.search);
-const trophiesUrl = './data/trophies.json';
-const roadmapUrl = './data/roadmap.json';
+import { loadGuideData, gradeCounts, DEMO_EARNED_IDS, trophyById } from './data.js';
+import { createProgressStore } from './store.js';
+import { renderTrackerList, renderDetailPane } from './render.js';
+import { renderRoadmap, renderMissables, renderSources } from './roadmap.js';
 
-const state = {
-  earned: new Set(),
-  counts: {},
-  spoiler: false,
-  kind: 'all',
-  grade: 'all',
-  query: '',
-  earnedOnly: false,
-  unconfirmedOnly: false,
-  selectedId: null,
-};
+const STORAGE_KEY = 'vice-coast-trophies-v1';
+const VIEWS = ['tracker', 'roadmap', 'missables', 'sources'];
 
-const els = {
-  earnedCount: document.getElementById('earnedCount'),
-  progressFill: document.getElementById('progressFill'),
-  gradeBreakdown: document.getElementById('gradeBreakdown'),
-  searchInput: document.getElementById('searchInput'),
-  kindFilters: document.getElementById('kindFilters'),
-  gradeFilter: document.getElementById('gradeFilter'),
-  earnedOnly: document.getElementById('earnedOnly'),
-  unconfirmedOnly: document.getElementById('unconfirmedOnly'),
-  exportBtn: document.getElementById('exportBtn'),
-  importBtn: document.getElementById('importBtn'),
-  importFile: document.getElementById('importFile'),
-  spoilerToggle: document.getElementById('spoilerToggle'),
-  filterSummary: document.getElementById('filterSummary'),
-  onlineNote: document.getElementById('onlineNote'),
-  trophyList: document.getElementById('trophyList'),
-  emptyList: document.getElementById('emptyList'),
-  detailPane: document.getElementById('detailPane'),
-  roadmapList: document.getElementById('roadmapList'),
-  missablesBox: document.getElementById('missablesBox'),
-  aboutBox: document.getElementById('aboutBox'),
-  views: {
-    '': document.getElementById('trackerView'),
-    roadmap: document.getElementById('roadmapView'),
-    missables: document.getElementById('missablesView'),
-    about: document.getElementById('aboutView'),
-  },
-};
-
-let trophies = [];
-let roadmap = null;
-
-function persist() {
-  saveProgress(state);
-}
-
-function selectedTrophy() {
-  return trophies.find((trophy) => trophy.id === state.selectedId) || null;
-}
-
-function rerender() {
-  renderProgress(els.earnedCount, els.progressFill, els.gradeBreakdown, trophies, state);
-  renderTrophyList(
-    els.trophyList,
-    els.emptyList,
-    els.filterSummary,
-    els.onlineNote,
-    trophies,
-    state,
-    { onSelect: selectTrophy, onToggleEarned: toggleEarned },
-  );
-  renderDetail(els.detailPane, selectedTrophy(), state, { onCount: changeCount });
-  if (roadmap) {
-    renderRoadmap(els.roadmapList, roadmap, trophies, state, selectTrophy);
-    renderMissables(els.missablesBox, roadmap, trophies, state, selectTrophy);
-    renderAbout(els.aboutBox, roadmap);
-  }
-}
-
-function toggleEarned(id) {
-  if (state.earned.has(id)) {
-    state.earned.delete(id);
-  } else {
-    state.earned.add(id);
-  }
-  persist();
-  rerender();
-}
-
-function changeCount(id, delta) {
-  const next = Math.max(0, (state.counts[id] || 0) + delta);
-  if (next === 0) {
-    delete state.counts[id];
-  } else {
-    state.counts[id] = next;
-  }
-  persist();
-  rerender();
-}
-
-function selectTrophy(id) {
-  state.selectedId = id;
-  if (location.hash !== `#/trophy/${id}`) {
-    history.replaceState(null, '', `#/trophy/${id}`);
-  }
-  showView('');
-  rerender();
-}
-
-function showView(route) {
-  for (const [key, view] of Object.entries(els.views)) {
-    view.hidden = key !== route;
-  }
-  for (const tab of document.querySelectorAll('#mainNav .nav-tab')) {
-    tab.classList.toggle('is-active', tab.dataset.route === route);
-  }
-}
-
-function routeFromHash() {
+function readViewFromHash() {
   const hash = location.hash.replace(/^#\/?/, '');
-  if (hash.startsWith('trophy/')) {
-    const id = Number(hash.slice('trophy/'.length));
-    if (Number.isInteger(id)) {
-      state.selectedId = id;
-      showView('');
-      rerender();
-      return;
-    }
-  }
-  if (hash === 'roadmap' || hash === 'missables' || hash === 'about') {
-    showView(hash);
-    return;
-  }
-  showView('');
+  return VIEWS.includes(hash) ? hash : 'tracker';
 }
 
-function wireToolbar() {
-  els.searchInput.addEventListener('input', () => {
-    state.query = els.searchInput.value;
-    rerender();
-  });
-  els.kindFilters.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-kind]');
-    if (!button) return;
-    state.kind = button.dataset.kind;
-    for (const chip of els.kindFilters.querySelectorAll('.chip')) {
-      chip.classList.toggle('is-active', chip === button);
+function applyDemoSeed(store, trophiesDoc) {
+  const params = new URLSearchParams(location.search);
+  if (params.get('demo') !== '1') return;
+  for (const id of DEMO_EARNED_IDS) {
+    const trophy = trophyById(trophiesDoc, id);
+    if (trophy) store.setEarned(trophy.name, true);
+  }
+  if (params.get('spoilers') === 'on') store.setSpoilers(true);
+  if (params.get('spoilers') === 'off') store.setSpoilers(false);
+}
+
+function renderProgress(state, trophiesDoc, progressEl, countsEl) {
+  const total = trophiesDoc.trophies.length;
+  const earned = state.earned.size;
+  const percent = total === 0 ? 0 : Math.round((earned / total) * 100);
+  progressEl.textContent = `${earned} of ${total} earned — ${percent}% to the platinum`;
+  const counts = gradeCounts(trophiesDoc);
+  const earnedByGrade = { platinum: 0, gold: 0, silver: 0, bronze: 0 };
+  for (const trophy of trophiesDoc.trophies) {
+    if (state.earned.has(trophy.name)) earnedByGrade[trophy.grade] += 1;
+  }
+  countsEl.textContent = `Platinum ${earnedByGrade.platinum}/${counts.platinum} · Gold ${earnedByGrade.gold}/${counts.gold} · Silver ${earnedByGrade.silver}/${counts.silver} · Bronze ${earnedByGrade.bronze}/${counts.bronze}`;
+  const bar = document.getElementById('progress-bar');
+  if (bar) bar.style.width = `${percent}%`;
+}
+
+async function bootViceCoastGuide() {
+  const { trophies: trophiesDoc, roadmap: roadmapDoc } = await loadGuideData();
+  const store = createProgressStore(STORAGE_KEY);
+  const loaded = store.load();
+  applyDemoSeed(store, trophiesDoc);
+
+  const state = {
+    earned: store.earned,
+    spoilers: store.spoilers,
+    kind: 'all',
+    grade: 'all',
+    query: '',
+    show: 'all',
+    view: readViewFromHash(),
+    selected: null,
+  };
+  const params = new URLSearchParams(location.search);
+  const openId = Number(params.get('open'));
+  if (openId) {
+    const trophy = trophyById(trophiesDoc, openId);
+    if (trophy) state.selected = trophy.name;
+  }
+  if (params.get('view') && VIEWS.includes(params.get('view'))) state.view = params.get('view');
+
+  const listEl = document.getElementById('trophy-list');
+  const detailEl = document.getElementById('detail-pane');
+  const viewEl = document.getElementById('view-pane');
+  const trackerEl = document.getElementById('tracker-view');
+  const progressEl = document.getElementById('progress');
+  const countsEl = document.getElementById('grade-counts');
+  const resultCountEl = document.getElementById('result-count');
+
+  function refresh() {
+    renderProgress(state, trophiesDoc, progressEl, countsEl);
+    const navButtons = document.querySelectorAll('.nav-btn');
+    for (const button of navButtons) {
+      button.classList.toggle('is-active', button.dataset.view === state.view);
     }
-    rerender();
+    trackerEl.hidden = state.view !== 'tracker';
+    viewEl.hidden = state.view === 'tracker';
+    if (state.view === 'tracker') {
+      const { shown, total } = renderTrackerList(listEl, trophiesDoc, ctx);
+      resultCountEl.textContent = `Showing ${shown} of ${total} trophies`;
+      renderDetailPane(detailEl, trophiesDoc, ctx);
+    } else if (state.view === 'roadmap') {
+      renderRoadmap(viewEl, trophiesDoc, roadmapDoc, ctx);
+    } else if (state.view === 'missables') {
+      renderMissables(viewEl, trophiesDoc, ctx);
+    } else {
+      renderSources(viewEl, trophiesDoc);
+    }
+  }
+
+  function selectTrophy(name) {
+    state.selected = name;
+    state.view = 'tracker';
+    location.hash = '#/tracker';
+    refresh();
+    detailEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  const ctx = {
+    state,
+    get selected() { return state.selected; },
+    onToggle(name, value) {
+      store.setEarned(name, value);
+      state.earned = store.earned;
+      refresh();
+    },
+    onSelect: selectTrophy,
+  };
+
+  function setView(view) {
+    state.view = view;
+    location.hash = `#/${view}`;
+    refresh();
+  }
+
+  document.querySelectorAll('.nav-btn').forEach((button) => {
+    button.addEventListener('click', () => setView(button.dataset.view));
   });
-  els.gradeFilter.addEventListener('change', () => {
-    state.grade = els.gradeFilter.value;
-    rerender();
+  window.addEventListener('hashchange', () => {
+    state.view = readViewFromHash();
+    refresh();
   });
-  els.earnedOnly.addEventListener('change', () => {
-    state.earnedOnly = els.earnedOnly.checked;
-    rerender();
+
+  document.getElementById('kind-filter').addEventListener('change', (event) => {
+    state.kind = event.target.value;
+    refresh();
   });
-  els.unconfirmedOnly.addEventListener('change', () => {
-    state.unconfirmedOnly = els.unconfirmedOnly.checked;
-    rerender();
+  document.getElementById('grade-filter').addEventListener('change', (event) => {
+    state.grade = event.target.value;
+    refresh();
   });
-  els.spoilerToggle.addEventListener('change', () => {
-    state.spoiler = els.spoilerToggle.checked;
-    persist();
-    rerender();
+  document.getElementById('show-filter').addEventListener('change', (event) => {
+    state.show = event.target.value;
+    refresh();
   });
-  els.exportBtn.addEventListener('click', () => {
-    downloadExport(saveProgress(state));
+  document.getElementById('search').addEventListener('input', (event) => {
+    state.query = event.target.value;
+    refresh();
   });
-  els.importBtn.addEventListener('click', () => els.importFile.click());
-  els.importFile.addEventListener('change', async () => {
-    const file = els.importFile.files[0];
+
+  const spoilerToggle = document.getElementById('spoiler-toggle');
+  spoilerToggle.checked = state.spoilers;
+  spoilerToggle.addEventListener('change', () => {
+    store.setSpoilers(spoilerToggle.checked);
+    state.spoilers = store.spoilers;
+    refresh();
+  });
+
+  document.getElementById('export-btn').addEventListener('click', () => store.exportFile());
+  const importInput = document.getElementById('import-file');
+  importInput.addEventListener('change', async (event) => {
+    const file = event.target.files[0];
     if (!file) return;
+    const statusEl = document.getElementById('import-status');
     try {
-      const imported = await readImportFile(file);
-      state.earned = new Set(imported.earned);
-      state.counts = imported.counts;
-      state.spoiler = imported.spoiler;
-      els.spoilerToggle.checked = state.spoiler;
-      persist();
-      rerender();
-    } catch {
-      alert('That file is not a Vice Coast progress export.');
+      const known = trophiesDoc.trophies.map((trophy) => trophy.name);
+      const result = await store.importFile(file, known);
+      state.earned = store.earned;
+      statusEl.textContent = `Imported ${result.imported} trophies${result.rejected.length ? `, ignored ${result.rejected.length} unknown names` : ''}.`;
+      refresh();
+    } catch (error) {
+      statusEl.textContent = `Import failed: ${error.message}`;
     }
-    els.importFile.value = '';
+    importInput.value = '';
   });
-  for (const tab of document.querySelectorAll('#mainNav .nav-tab')) {
-    tab.addEventListener('click', () => {
-      const route = tab.dataset.route;
-      history.replaceState(null, '', route === '' ? '#/' : `#/${route}`);
-      showView(route);
-    });
-  }
-  window.addEventListener('hashchange', routeFromHash);
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if (window.confirm('Clear all earned trophies? This cannot be undone.')) {
+      store.reset();
+      state.earned = store.earned;
+      state.selected = null;
+      refresh();
+    }
+  });
+
+  refresh();
 }
 
-async function boot() {
-  const [trophyData, roadmapData] = await Promise.all([
-    fetch(trophiesUrl).then((response) => response.json()),
-    fetch(roadmapUrl).then((response) => response.json()),
-  ]);
-  trophies = trophyData.trophies;
-  roadmap = roadmapData;
-
-  const saved = loadProgress();
-  if (saved) {
-    state.earned = new Set(saved.earned);
-    state.counts = saved.counts;
-    state.spoiler = saved.spoiler;
-  } else if (params.get('demo') === '1') {
-    const demo = seedDemoProgress();
-    state.earned = new Set(demo.earned);
-    state.counts = demo.counts;
-    state.spoiler = demo.spoiler;
-  }
-  if (params.get('spoilers') === 'on') state.spoiler = true;
-  if (params.get('spoilers') === 'off') state.spoiler = false;
-  els.spoilerToggle.checked = state.spoiler;
-
-  wireToolbar();
-  rerender();
-  routeFromHash();
-}
-
-boot();
+bootViceCoastGuide().catch((error) => {
+  const listEl = document.getElementById('trophy-list');
+  if (listEl) listEl.textContent = `The guide could not load its data: ${error.message}`;
+});
