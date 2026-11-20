@@ -1,188 +1,134 @@
-// Vice Coast Trophy Guide — boot and shell.
-// The guide is a static offline app: it fetches only its own data files,
-// keeps progress in localStorage, and renders the tracker, the roadmap,
-// the missables and the sources from them.
+// Vice Coast Trophy Guide: boot, state, controls, hash routing and progress wiring.
+import { buildExportFile, loadProgress, parseImportFile, saveProgress } from './store.js';
+import { applyFilters } from './filters.js';
+import { renderMissables, renderProgress, renderRoadmap, renderTrophyList } from './render.js';
 
-import { loadGuideData, gradeCounts, DEMO_EARNED_IDS, trophyById } from './data.js';
-import { createProgressStore } from './store.js';
-import { renderTrackerList, renderDetailPane } from './render.js';
-import { renderRoadmap, renderMissables, renderSources } from './roadmap.js';
+const DEMO_EARNED = [2, 15, 16, 17, 20, 21, 28, 33, 35, 42, 44, 46, 53];
 
-const STORAGE_KEY = 'vice-coast-trophies-v1';
-const VIEWS = ['tracker', 'roadmap', 'missables', 'sources'];
-
-function readViewFromHash() {
-  const hash = location.hash.replace(/^#\/?/, '');
-  return VIEWS.includes(hash) ? hash : 'tracker';
+function readHash() {
+  const raw = location.hash || '';
+  const view = raw.includes('roadmap') ? 'roadmap' : raw.includes('missables') ? 'missables' : 'tracker';
+  const trophyMatch = raw.match(/trophy-(\d+)/);
+  return { view, demo: raw.includes('demo'), spoilers: raw.includes('spoilers'), openId: trophyMatch ? Number(trophyMatch[1]) : null };
 }
 
-function applyDemoSeed(store, trophiesDoc) {
-  const params = new URLSearchParams(location.search);
-  if (params.get('demo') !== '1') return;
-  for (const id of DEMO_EARNED_IDS) {
-    const trophy = trophyById(trophiesDoc, id);
-    if (trophy) store.setEarned(trophy.name, true);
-  }
-  if (params.get('spoilers') === 'on') store.setSpoilers(true);
-  if (params.get('spoilers') === 'off') store.setSpoilers(false);
+async function loadJson(path) {
+  const response = await fetch(path);
+  if (!response.ok) throw new Error(`Could not load ${path}`);
+  return response.json();
 }
 
-function renderProgress(state, trophiesDoc, progressEl, countsEl) {
-  const total = trophiesDoc.trophies.length;
-  const earned = state.earned.size;
-  const percent = total === 0 ? 0 : Math.round((earned / total) * 100);
-  progressEl.textContent = `${earned} of ${total} earned — ${percent}% to the platinum`;
-  const counts = gradeCounts(trophiesDoc);
-  const earnedByGrade = { platinum: 0, gold: 0, silver: 0, bronze: 0 };
-  for (const trophy of trophiesDoc.trophies) {
-    if (state.earned.has(trophy.name)) earnedByGrade[trophy.grade] += 1;
-  }
-  countsEl.textContent = `Platinum ${earnedByGrade.platinum}/${counts.platinum} · Gold ${earnedByGrade.gold}/${counts.gold} · Silver ${earnedByGrade.silver}/${counts.silver} · Bronze ${earnedByGrade.bronze}/${counts.bronze}`;
-  const bar = document.getElementById('progress-bar');
-  if (bar) bar.style.width = `${percent}%`;
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
-async function bootViceCoastGuide() {
-  const { trophies: trophiesDoc, roadmap: roadmapDoc } = await loadGuideData();
-  const store = createProgressStore(STORAGE_KEY);
-  const loaded = store.load();
-  applyDemoSeed(store, trophiesDoc);
+async function boot() {
+  const trophiesData = await loadJson('data/trophies.json');
+  const roadmapData = await loadJson('data/roadmap.json');
+  const trophies = trophiesData.trophies;
+  const trophiesById = new Map(trophies.map((trophy) => [trophy.id, trophy]));
+  const hash = readHash();
 
   const state = {
-    earned: store.earned,
-    spoilers: store.spoilers,
+    trophies,
+    earned: loadProgress(),
     kind: 'all',
     grade: 'all',
-    query: '',
-    show: 'all',
-    view: readViewFromHash(),
-    selected: null,
+    search: '',
+    spoiler: hash.spoilers,
+    earnedOnly: false,
+    openId: hash.openId,
+    view: hash.view,
   };
-  const params = new URLSearchParams(location.search);
-  const openId = Number(params.get('open'));
-  if (openId) {
-    const trophy = trophyById(trophiesDoc, openId);
-    if (trophy) state.selected = trophy.name;
-  }
-  if (params.get('view') && VIEWS.includes(params.get('view'))) state.view = params.get('view');
-
-  const listEl = document.getElementById('trophy-list');
-  const detailEl = document.getElementById('detail-pane');
-  const viewEl = document.getElementById('view-pane');
-  const trackerEl = document.getElementById('tracker-view');
-  const progressEl = document.getElementById('progress');
-  const countsEl = document.getElementById('grade-counts');
-  const resultCountEl = document.getElementById('result-count');
-
-  function refresh() {
-    renderProgress(state, trophiesDoc, progressEl, countsEl);
-    const navButtons = document.querySelectorAll('.nav-btn');
-    for (const button of navButtons) {
-      button.classList.toggle('is-active', button.dataset.view === state.view);
-    }
-    trackerEl.hidden = state.view !== 'tracker';
-    viewEl.hidden = state.view === 'tracker';
-    if (state.view === 'tracker') {
-      const { shown, total } = renderTrackerList(listEl, trophiesDoc, ctx);
-      resultCountEl.textContent = `Showing ${shown} of ${total} trophies`;
-      renderDetailPane(detailEl, trophiesDoc, ctx);
-    } else if (state.view === 'roadmap') {
-      renderRoadmap(viewEl, trophiesDoc, roadmapDoc, ctx);
-    } else if (state.view === 'missables') {
-      renderMissables(viewEl, trophiesDoc, ctx);
-    } else {
-      renderSources(viewEl, trophiesDoc);
-    }
+  if (hash.demo && state.earned.size === 0) {
+    state.earned = new Set(DEMO_EARNED);
+    saveProgress(state.earned);
   }
 
-  function selectTrophy(name) {
-    state.selected = name;
-    state.view = 'tracker';
-    location.hash = '#/tracker';
-    refresh();
-    detailEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-
-  const ctx = {
-    state,
-    get selected() { return state.selected; },
-    onToggle(name, value) {
-      store.setEarned(name, value);
-      state.earned = store.earned;
-      refresh();
-    },
-    onSelect: selectTrophy,
+  const els = {
+    progressLine: document.getElementById('progress-line'),
+    progressFill: document.getElementById('progress-fill'),
+    gradeCounts: document.getElementById('grade-counts'),
+    trophyList: document.getElementById('trophy-list'),
+    emptyNote: document.getElementById('empty-note'),
+    roadmap: document.getElementById('roadmap'),
+    missableList: document.getElementById('missable-list'),
+    search: document.getElementById('search'),
+    kind: document.getElementById('kind'),
+    grade: document.getElementById('grade'),
+    spoiler: document.getElementById('spoiler'),
+    earnedOnly: document.getElementById('earned-only'),
+    exportBtn: document.getElementById('export'),
+    importInput: document.getElementById('import'),
+    resetBtn: document.getElementById('reset'),
   };
+  els.spoiler.checked = state.spoiler;
+
+  function onToggle(id, checked) {
+    if (checked) state.earned.add(id);
+    else state.earned.delete(id);
+    saveProgress(state.earned);
+    render();
+  }
+
+  function render() {
+    renderProgress(els.progressLine, els.progressFill, els.gradeCounts, trophies, state.earned);
+    const visible = applyFilters(trophies, state);
+    renderTrophyList(els.trophyList, visible, state, onToggle);
+    els.emptyNote.hidden = visible.length > 0;
+    renderRoadmap(els.roadmap, roadmapData.roadmap, trophiesById, state.earned);
+    renderMissables(els.missableList, trophies, state, onToggle);
+    for (const view of ['tracker', 'roadmap', 'missables']) {
+      document.getElementById(`view-${view}`).hidden = state.view !== view;
+      document.getElementById(`tab-${view}`).classList.toggle('active', state.view === view);
+    }
+    if (state.openId !== null) {
+      const openEl = document.getElementById(`trophy-${state.openId}`);
+      if (openEl) openEl.querySelector('details').open = true;
+    }
+  }
 
   function setView(view) {
     state.view = view;
-    location.hash = `#/${view}`;
-    refresh();
+    render();
   }
 
-  document.querySelectorAll('.nav-btn').forEach((button) => {
-    button.addEventListener('click', () => setView(button.dataset.view));
-  });
-  window.addEventListener('hashchange', () => {
-    state.view = readViewFromHash();
-    refresh();
-  });
-
-  document.getElementById('kind-filter').addEventListener('change', (event) => {
-    state.kind = event.target.value;
-    refresh();
-  });
-  document.getElementById('grade-filter').addEventListener('change', (event) => {
-    state.grade = event.target.value;
-    refresh();
-  });
-  document.getElementById('show-filter').addEventListener('change', (event) => {
-    state.show = event.target.value;
-    refresh();
-  });
-  document.getElementById('search').addEventListener('input', (event) => {
-    state.query = event.target.value;
-    refresh();
-  });
-
-  const spoilerToggle = document.getElementById('spoiler-toggle');
-  spoilerToggle.checked = state.spoilers;
-  spoilerToggle.addEventListener('change', () => {
-    store.setSpoilers(spoilerToggle.checked);
-    state.spoilers = store.spoilers;
-    refresh();
-  });
-
-  document.getElementById('export-btn').addEventListener('click', () => store.exportFile());
-  const importInput = document.getElementById('import-file');
-  importInput.addEventListener('change', async (event) => {
-    const file = event.target.files[0];
+  document.getElementById('tab-tracker').addEventListener('click', () => setView('tracker'));
+  document.getElementById('tab-roadmap').addEventListener('click', () => setView('roadmap'));
+  document.getElementById('tab-missables').addEventListener('click', () => setView('missables'));
+  els.search.addEventListener('input', () => { state.search = els.search.value; render(); });
+  els.kind.addEventListener('change', () => { state.kind = els.kind.value; render(); });
+  els.grade.addEventListener('change', () => { state.grade = els.grade.value; render(); });
+  els.spoiler.addEventListener('change', () => { state.spoiler = els.spoiler.checked; render(); });
+  els.earnedOnly.addEventListener('change', () => { state.earnedOnly = els.earnedOnly.checked; render(); });
+  els.exportBtn.addEventListener('click', () => downloadBlob(buildExportFile(state.earned), 'vice-coast-trophy-progress.json'));
+  els.importInput.addEventListener('change', async () => {
+    const file = els.importInput.files[0];
     if (!file) return;
-    const statusEl = document.getElementById('import-status');
     try {
-      const known = trophiesDoc.trophies.map((trophy) => trophy.name);
-      const result = await store.importFile(file, known);
-      state.earned = store.earned;
-      statusEl.textContent = `Imported ${result.imported} trophies${result.rejected.length ? `, ignored ${result.rejected.length} unknown names` : ''}.`;
-      refresh();
-    } catch (error) {
-      statusEl.textContent = `Import failed: ${error.message}`;
+      state.earned = parseImportFile(await file.text());
+      saveProgress(state.earned);
+      render();
+    } catch (err) {
+      alert(`That file could not be imported: ${err.message}`);
     }
-    importInput.value = '';
+    els.importInput.value = '';
   });
-  document.getElementById('reset-btn').addEventListener('click', () => {
-    if (window.confirm('Clear all earned trophies? This cannot be undone.')) {
-      store.reset();
-      state.earned = store.earned;
-      state.selected = null;
-      refresh();
-    }
+  els.resetBtn.addEventListener('click', () => {
+    if (!confirm('Reset all earned trophies in this browser?')) return;
+    state.earned = new Set();
+    saveProgress(state.earned);
+    render();
   });
 
-  refresh();
+  render();
 }
 
-bootViceCoastGuide().catch((error) => {
-  const listEl = document.getElementById('trophy-list');
-  if (listEl) listEl.textContent = `The guide could not load its data: ${error.message}`;
+boot().catch((err) => {
+  document.getElementById('trophy-list').textContent = `This guide could not load its trophy data: ${err.message}`;
 });

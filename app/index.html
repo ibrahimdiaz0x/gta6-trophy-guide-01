@@ -3,75 +3,72 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vice Coast Trophy Guide — GTA 6, all 55 trophies</title>
+<title>Vice Coast — GTA 6 Trophy Guide and Tracker</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="app-header">
-  <div>
-    <h1>Vice Coast Trophy Guide</h1>
-    <p class="subtitle">Grand Theft Auto VI — all 55 PlayStation 5 trophies: 1 platinum, 2 gold, 6 silver, 46 bronze. Offline tracker and guide.</p>
-  </div>
-  <div class="progress-block">
-    <p id="progress" class="progress-text">0 of 55 earned</p>
-    <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
-    <p id="grade-counts" class="grade-counts"></p>
-  </div>
+<header class="site-header">
+  <p class="eyebrow">Grand Theft Auto VI &middot; PlayStation 5 &middot; 55 trophies</p>
+  <h1>Vice Coast Trophy Guide</h1>
+  <p class="subtitle">Every official trophy, its guide and its sources — plus a tracker that saves your progress in this browser.</p>
+  <p id="progress-line" class="progress-line">0 of 55 earned</p>
+  <div class="progress-bar" aria-label="Trophy progress"><div id="progress-fill" class="progress-fill"></div></div>
+  <p id="grade-counts" class="grade-counts"></p>
 </header>
-<nav class="view-nav" aria-label="Guide sections">
-  <button type="button" class="nav-btn is-active" data-view="tracker">Tracker</button>
-  <button type="button" class="nav-btn" data-view="roadmap">Roadmap to Platinum</button>
-  <button type="button" class="nav-btn" data-view="missables">Missables</button>
-  <button type="button" class="nav-btn" data-view="sources">Sources &amp; notes</button>
+<nav class="tabs" aria-label="Guide sections">
+  <button id="tab-tracker" type="button" class="tab active">Tracker</button>
+  <button id="tab-roadmap" type="button" class="tab">Roadmap to Platinum</button>
+  <button id="tab-missables" type="button" class="tab">Missables</button>
 </nav>
+<section class="controls" aria-label="Tracker controls">
+  <label class="control">Search <input id="search" type="search" placeholder="Search a trophy or guide&hellip;"></label>
+  <label class="control">Kind
+    <select id="kind">
+      <option value="all">All kinds</option>
+      <option value="story">Story</option>
+      <option value="missable">Missable</option>
+      <option value="collectibles">Collectibles</option>
+      <option value="activities">Activities</option>
+      <option value="online">Online</option>
+    </select>
+  </label>
+  <label class="control">Grade
+    <select id="grade">
+      <option value="all">All grades</option>
+      <option value="platinum">Platinum</option>
+      <option value="gold">Gold</option>
+      <option value="silver">Silver</option>
+      <option value="bronze">Bronze</option>
+    </select>
+  </label>
+  <label class="control check"><input id="spoiler" type="checkbox"> Hide story spoilers until earned</label>
+  <label class="control check"><input id="earned-only" type="checkbox"> Earned only</label>
+  <button id="export" type="button">Export progress</button>
+  <label class="control import">Import progress <input id="import" type="file" accept="application/json"></label>
+  <button id="reset" type="button">Reset progress</button>
+</section>
 <main>
-  <section id="tracker-view">
-    <div class="controls">
-      <label class="control">Search <input id="search" type="search" placeholder="Search trophies, guides, places…"></label>
-      <label class="control">Kind
-        <select id="kind-filter">
-          <option value="all">All kinds</option>
-          <option value="story">Story</option>
-          <option value="missable">Missable</option>
-          <option value="collectibles">Collectibles</option>
-          <option value="activities">Activities</option>
-          <option value="online">Online</option>
-        </select>
-      </label>
-      <label class="control">Grade
-        <select id="grade-filter">
-          <option value="all">All grades</option>
-          <option value="platinum">Platinum</option>
-          <option value="gold">Gold</option>
-          <option value="silver">Silver</option>
-          <option value="bronze">Bronze</option>
-        </select>
-      </label>
-      <label class="control">Show
-        <select id="show-filter">
-          <option value="all">All</option>
-          <option value="todo">Not earned yet</option>
-          <option value="earned">Earned</option>
-        </select>
-      </label>
-      <label class="control spoiler-control"><input id="spoiler-toggle" type="checkbox" checked> Hide story spoilers</label>
-    </div>
-    <div class="save-row">
-      <button id="export-btn" type="button">Export progress</button>
-      <label class="import-label">Import progress <input id="import-file" type="file" accept="application/json"></label>
-      <button id="reset-btn" type="button">Reset progress</button>
-      <span id="import-status" class="import-status" role="status"></span>
-    </div>
-    <p id="result-count" class="result-count"></p>
-    <div class="tracker-layout">
-      <div id="trophy-list" class="trophy-list" aria-live="polite"></div>
-      <aside id="detail-pane" class="detail-pane" aria-label="Trophy guide"></aside>
-    </div>
+  <section id="view-tracker" class="view">
+    <p class="hint">Tick a trophy when you earn it. Click any trophy to open its guide and sources. Progress is saved in this browser and never leaves it unless you export it.</p>
+    <ul id="trophy-list" class="trophy-list"></ul>
+    <p id="empty-note" class="hint" hidden>No trophies match these filters.</p>
   </section>
-  <section id="view-pane" class="view-pane" hidden></section>
+  <section id="view-roadmap" class="view" hidden>
+    <h2>Roadmap to the platinum</h2>
+    <p class="hint">Built from the official descriptions: story first, then contacts, then activities, then collectibles, then the 100% cleanup. The platinum is the last thing you hear.</p>
+    <div id="roadmap"></div>
+  </section>
+  <section id="view-missables" class="view" hidden>
+    <h2>Missable trophies</h2>
+    <p class="hint">Missable here means tied to a single story moment or a choice that cannot be unmade. GTA games usually offer mission replay, so treat these as &ldquo;do it when it appears&rdquo; rather than &ldquo;gone forever&rdquo; — none of this is confirmed permanently missable from the official list alone.</p>
+    <ul id="missable-list" class="trophy-list"></ul>
+  </section>
 </main>
-<footer class="app-footer">
-  <p>Vice Coast Trophy Guide — an unofficial, open-source guide. Names, descriptions and grades as Exophase and PSNProfiles list them. No Rockstar logo or official artwork is used. Works offline; progress stays in your browser.</p>
+<footer class="site-footer">
+  <h2>Sources and honesty note</h2>
+  <p>Official names, descriptions and grades: Exophase — Grand Theft Auto VI trophy list; PSNProfiles — Grand Theft Auto VI trophies (43531), which also supplies the PSN counts shown (250 stunts, 42 shooting range challenges, 14 drone race locations, 18 meditation spots, 52 areas, and the rest). Each trophy's guide names its sources beside it. Community guides consulted by name: PowerPyx — GTA 6 Trophy Guide; PlayStationTrophies.org — GTA 6 Trophy Guide; TrueTrophies — GTA 6 trophy guide. No text was copied from any of them.</p>
+  <p>Grand Theft Auto VI released 19 November 2026. Where a method is not confirmed in-game yet, the guide says so plainly instead of inventing a location or a step. This guide is unofficial, works fully offline, and shows no Rockstar logo or official artwork.</p>
+  <p>Tip for screenshots: open this page with #demo in the address to see it with 13 trophies earned, #spoilers to preview the spoiler setting, and #trophy-17 to open one guide.</p>
 </footer>
 <script type="module" src="main.js"></script>
 </body>
