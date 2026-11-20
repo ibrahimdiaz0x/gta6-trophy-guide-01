@@ -1,28 +1,30 @@
-# Vice Coast Trophy Guide — GTA VI, all 55 trophies, offline
+# Vice Coast — GTA 6 Trophy Guide & Tracker
 
-[![make.fun bounty](https://img.shields.io/badge/make.fun-bounty-gta6--trophy--guide--01-ff2e88)](https://make.fun/bounty/gta6-trophy-guide-01)
-[![offline](https://img.shields.io/badge/offline-static%20web%20app-19c2b8)](https://make.fun/bounty/gta6-trophy-guide-01)
-[![license MIT](https://img.shields.io/badge/license-MIT-f5c542)](LICENSE)
+[![make.fun — gta6-trophy-guide-01](https://img.shields.io/badge/make.fun-gta6--trophy--guide--01-orange)](https://make.fun/bounty/gta6-trophy-guide-01)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Offline](https://img.shields.io/badge/offline-static%20app-brightgreen)](app/index.html)
 
-A free, open-source, offline trophy guide and tracker for **Grand Theft Auto VI** on PlayStation 5. It covers every one of the **55 official trophies** (1 platinum, 2 gold, 6 silver, 46 bronze) with the official name, description and grade exactly as PlayStation publishes them, a guide to each in this entry's own words with its source named, a roadmap to the platinum, and a checklist that saves progress in the browser.
+An unofficial, fan-made offline guide and tracker for all **55 PlayStation 5 trophies** of **Grand Theft Auto VI** (1 platinum, 2 gold, 6 silver, 46 bronze) — built for the [make.fun](https://make.fun/bounty/gta6-trophy-guide-01) bounty `gta6-trophy-guide-01`.
 
-## What it does
+## What it is
 
-- **Tracker** — tick a trophy off and it stays ticked (localStorage). Export progress to a JSON file and import it back on any device.
-- **Filters** — by kind (story, side missions, activities, collectibles, crime & heists, money & property, moments, 100% completion), by grade, by missable, and free-text search. A "hide earned" toggle clears the finished ones away.
-- **Spoiler setting** — on by default: story trophies stay hidden (name, description and guide) until you earn them.
-- **Roadmap** — seven stages to the platinum, built from the official descriptions: story first, then side characters, activities, collectibles, crime and money, then the 100% checklist.
-- **Missables flagged** — exactly one trophy is flagged as possibly missable, *Positive Mental Attitude*: the first meditation at Jason's house is only offered in Chapter 1. PowerPyx notes it is still unconfirmed whether that spot is required for the trophy, so the guide says to do it anyway. Everything else can be earned after the story in a single playthrough, with no online play.
-- **Honest gaps** — five trophies (*Challenging Tank*, *Personal Best*, *Actions Speak Louder*, *Bad Luck, I Guess*, *The Truth Is Out There*) are marked **method unconfirmed**: no published guide had confirmed a method for them when this guide was written (20 November 2026), so the guide says so instead of guessing. *Ten Pin* is marked partly confirmed.
+- **Tracker** — a checklist of every trophy with its official name, description and grade. Progress is saved in the browser (localStorage), with export to a file and import back. Counters track partial progress (42 Shooting Range golds, 250 stunts, 100 WAiNK scans…).
+- **Filters** — by kind (story, missable, collectibles, activities, 100% completion, online), by grade, by earned state, by unconfirmed methods, and by search. The Online filter is empty on purpose: GTA 6 has no online trophies.
+- **Spoiler setting** — hides the names and descriptions of story trophies until they are earned.
+- **Roadmap to the Platinum** — seven stages in order, from the opening mission to 100% completion, built from the official trophy descriptions.
+- **Missables** — the one trophy early guides flag as possibly missable (*Positive Mental Attitude*: meditate at every spot, from Chapter 1), and how to protect it.
+- **Cited guides** — every trophy has a guide in this entry's own words, with its sources named beside it (Exophase and PSNProfiles for the official list; PowerPyx, Push Square, KeenGamer and others for methods). Where a method is not yet confirmed in the game, the trophy is flagged **Unconfirmed** and the guide says so plainly instead of guessing.
 
-## Run it offline
+## Run it
+
+Static files under `app/` — no build step, no network at run time:
 
 ```sh
 node serve.ts
 # open http://localhost:8080
 ```
 
-No build step, no network: `app/` is plain static files, and the page loads only its own files. Open `app/index.html` from any static server and it works with the network off.
+Or open `app/index.html` from any static file server with `app/` at its root.
 
 ## Hand it in
 
@@ -30,14 +32,12 @@ No build step, no network: `app/` is plain static files, and the page loads only
 mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
 
-`main.ts` (Node 22, standard library only) copies `app/` and `screenshots/` to the output directory and writes `dossier.json` with the kit's vendored `vendor/makefun-frontend.ts`.
+`main.ts` (Node 22, standard library only) copies `app/` and `screenshots/` to the output directory and writes `dossier.json` with the vendored `vendor/makefun-frontend.ts` library.
 
-## Sources
+## Honesty note
 
-Names, descriptions and grades are the official list as PlayStation publishes it (Exophase and PSNProfiles agree on all 55). Guides cite PowerPyx (trophy guide & roadmap, meditation locations), Push Square, KeenGamer, GTA Zone, GTAVice, Output Lag, Beebom and EGamers — named beside each trophy in the app, with links. Nothing is copied from another guide. Counts (42 Shooting Range challenges, 14 drone-race locations, 18 meditations, 52 areas, 9 gangs, 8 garages) are the numbers those guides report from the finished game.
+The game released on 19 November 2026, a day before this guide was written. Names, descriptions and grades are the official list as published via Exophase and PSNProfiles. Methods that early guides have not yet confirmed are flagged, not invented. This guide uses no Rockstar logo, artwork or game screenshots.
 
-## Notes
+## License
 
-- No Rockstar Games logo, artwork or game screenshot is used; the look is original. Grand Theft Auto VI is developed and published by Rockstar Games.
-- Trophy names and descriptions are shown as PlayStation publishes them, including *T**s Ass Drug Money*.
-- MIT licensed. Entry for the [gta6-trophy-guide-01 bounty on make.fun](https://make.fun/bounty/gta6-trophy-guide-01).
+MIT — see [LICENSE](LICENSE).
