@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vice Coast Trophy Guide — GTA VI · All 55 Trophies</title>
+<meta name="description" content="Offline tracker and guide for all 55 official GTA VI trophies: checklist, roadmap to platinum, the one missable trophy, and cited guidance for every trophy.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="hero">
+  <p class="eyebrow">Grand Theft Auto VI · PlayStation 5 · 55 trophies</p>
+  <h1>Vice Coast Trophy Guide</h1>
+  <p class="lede">Every official GTA VI trophy in one place — a tracker that remembers your progress, a roadmap to the platinum, and a guide for each trophy with its sources cited. No account, no network: open this file and it works.</p>
+  <div class="stats" id="stats" aria-live="polite">
+    <div class="stat"><span class="stat-num" id="stat-earned">0</span><span class="stat-label">earned of 55</span></div>
+    <div class="stat"><span class="stat-num" id="stat-pct">0%</span><span class="stat-label">toward platinum</span></div>
+    <div class="stat"><span class="stat-num">200h</span><span class="stat-label">PowerPyx estimate</span></div>
+    <div class="stat"><span class="stat-num">4/10</span><span class="stat-label">difficulty</span></div>
+  </div>
+  <div class="progress-wrap" aria-hidden="true">
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+  <p class="progress-text" id="progress-text">0 of 55 trophies earned · Platinum: Vice Got a Price!</p>
+</header>
+
+<main>
+  <section class="warn" id="missable-warning">
+    <h2>⚠ The one trophy you can miss</h2>
+    <p><strong>Positive Mental Attitude</strong> — meditate at every spot across Leonida. The first meditation is Lucia's on the balcony at Jason's house in <strong>Chapter 1</strong>, and both GTABase and PowerPyx flag it as possibly missable: it is reported to disappear once Chapter 1 ends. Whether that spot is required is unconfirmed, so do it while Chapter 1 is still open. Everything else is reachable in free-roam after the story.</p>
+    <p class="warn-src">Sources: <a href="https://www.powerpyx.com/gta-6-grand-theft-auto-vi-trophy-guide-roadmap/">PowerPyx</a> · <a href="https://egamers.io/gta-6-trophy-list-all-55-trophies-and-achievements-plus-the-hardest-ones/">EGamers</a></p>
+  </section>
+
+  <section class="roadmap" id="roadmap">
+    <h2>Roadmap to the platinum</h2>
+    <div class="stages" id="stages"></div>
+  </section>
+
+  <section class="tracker" id="tracker">
+    <h2>Trophy tracker</h2>
+    <div class="toolbar">
+      <label class="search">Search
+        <input type="search" id="search" placeholder="Trophy name, mission, keyword…" autocomplete="off">
+      </label>
+      <div class="filters" id="kind-filters" role="group" aria-label="Filter by kind"></div>
+      <div class="filters" id="grade-filters" role="group" aria-label="Filter by grade"></div>
+      <label class="toggle"><input type="checkbox" id="spoiler-toggle" checked> Hide story trophies until earned (spoiler-safe)</label>
+      <label class="toggle"><input type="checkbox" id="hide-earned"> Hide earned</label>
+      <label class="toggle">Sort
+        <select id="sort">
+          <option value="list">List order</option>
+          <option value="grade">Grade (Platinum first)</option>
+          <option value="name">Name A–Z</option>
+        </select>
+      </label>
+      <div class="io">
+        <button type="button" id="export-btn">Export progress</button>
+        <button type="button" id="import-btn">Import progress</button>
+        <input type="file" id="import-file" accept="application/json,.json" hidden>
+        <button type="button" id="reset-btn" class="danger">Reset progress</button>
+      </div>
+    </div>
+    <p class="result-count" id="result-count" aria-live="polite"></p>
+    <div class="cards" id="cards"></div>
+    <p class="empty" id="empty" hidden>No trophies match these filters. Clear the search or pick another kind.</p>
+  </section>
+
+  <section class="notes">
+    <h2>Good to know</h2>
+    <ul>
+      <li><strong>One playthrough is enough.</strong> There is no mission replay, but nothing is locked after the story — free-roam stays open.</li>
+      <li><strong>Cheats switch trophies off.</strong> GTABase and TechWiser report that any cheat disables trophy tracking and saving; the only fix is a clean save.</li>
+      <li><strong>100% is lenient.</strong> PowerPyx puts it at roughly 60% of true completion; you need 70 of the 80 Challenges. Only Robberies, Underwater Discoveries, Shooting Ranges, Drone Races and Bret's Quests ask for everything.</li>
+      <li><strong>Five trophies are still unconfirmed.</strong> In The Beginning…, Capital Offense, Bad Luck, I Guess, The Truth Is Out There and Ten Pin have no confirmed method yet (18 Nov 2026). Their cards say so plainly instead of guessing.</li>
+      <li><strong>Progress lives in your browser.</strong> Tick a trophy and it is saved locally. Export to back it up, import to restore it on another device.</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <h2>Sources</h2>
+  <ul id="source-list"></ul>
+  <p class="fine">Trophy names, descriptions and grades follow the official list as published by Exophase and PSNProfiles (18 November 2026). Guidance is written in our own words; quoted facts are cited per trophy. This guide is not affiliated with Rockstar Games, Sony or PlayStation, and uses no Rockstar artwork or logos.</p>
+  <p class="fine">Vice Coast Trophy Guide — built for the make.fun bounty gta6-trophy-guide-01.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
