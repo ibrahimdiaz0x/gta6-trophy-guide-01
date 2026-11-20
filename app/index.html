@@ -1,89 +1,96 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vice Coast Trophy Guide — GTA VI · All 55 Trophies</title>
-<meta name="description" content="Offline tracker and guide for all 55 official GTA VI trophies: checklist, roadmap to platinum, the one missable trophy, and cited guidance for every trophy.">
+<title>Vice Coast Trophy Guide — GTA VI, all 55 trophies, offline</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="hero">
-  <p class="eyebrow">Grand Theft Auto VI · PlayStation 5 · 55 trophies</p>
+<header class="masthead">
+  <p class="kicker">Grand Theft Auto VI &middot; PlayStation 5 &middot; works offline</p>
   <h1>Vice Coast Trophy Guide</h1>
-  <p class="lede">Every official GTA VI trophy in one place — a tracker that remembers your progress, a roadmap to the platinum, and a guide for each trophy with its sources cited. No account, no network: open this file and it works.</p>
-  <div class="stats" id="stats" aria-live="polite">
-    <div class="stat"><span class="stat-num" id="stat-earned">0</span><span class="stat-label">earned of 55</span></div>
-    <div class="stat"><span class="stat-num" id="stat-pct">0%</span><span class="stat-label">toward platinum</span></div>
-    <div class="stat"><span class="stat-num">200h</span><span class="stat-label">PowerPyx estimate</span></div>
-    <div class="stat"><span class="stat-num">4/10</span><span class="stat-label">difficulty</span></div>
+  <p class="lede">Every one of the 55 official trophies — name, description and grade exactly as PlayStation publishes them — with a plain-words guide to each, a road to the platinum, and a checklist that remembers what you earned.</p>
+  <div class="facts" id="facts">
+    <span><strong>55</strong> trophies</span>
+    <span><strong>1</strong> platinum</span>
+    <span><strong>2</strong> gold</span>
+    <span><strong>6</strong> silver</span>
+    <span><strong>46</strong> bronze</span>
+    <span><strong>28</strong> hidden until earned</span>
+    <span><strong>0</strong> online — all offline</span>
   </div>
-  <div class="progress-wrap" aria-hidden="true">
-    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  <div class="progress" aria-label="Progress">
+    <div class="progress-top"><span id="progressText">0 of 55 earned</span><span id="progressPct">0%</span></div>
+    <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+    <p class="progress-sub" id="gradeText"></p>
   </div>
-  <p class="progress-text" id="progress-text">0 of 55 trophies earned · Platinum: Vice Got a Price!</p>
 </header>
 
-<main>
-  <section class="warn" id="missable-warning">
-    <h2>⚠ The one trophy you can miss</h2>
-    <p><strong>Positive Mental Attitude</strong> — meditate at every spot across Leonida. The first meditation is Lucia's on the balcony at Jason's house in <strong>Chapter 1</strong>, and both GTABase and PowerPyx flag it as possibly missable: it is reported to disappear once Chapter 1 ends. Whether that spot is required is unconfirmed, so do it while Chapter 1 is still open. Everything else is reachable in free-roam after the story.</p>
-    <p class="warn-src">Sources: <a href="https://www.powerpyx.com/gta-6-grand-theft-auto-vi-trophy-guide-roadmap/">PowerPyx</a> · <a href="https://egamers.io/gta-6-trophy-list-all-55-trophies-and-achievements-plus-the-hardest-ones/">EGamers</a></p>
-  </section>
+<aside class="missable" id="missableBanner">
+  <h2>Read this before Chapter 1 ends</h2>
+  <p><strong>Positive Mental Attitude</strong> is the only trophy the published guides flag as possibly missable. The first meditation — at Jason&rsquo;s house, after the mission <em>Down to Earth</em> — is only offered in Chapter 1: talk to Lucia in the kitchen in the morning, follow her to the balcony and accept. PowerPyx notes it is still unconfirmed whether that spot is required for the trophy, so do it anyway. Everything else in this list can be earned after the story, in one playthrough, with no online play.</p>
+</aside>
 
-  <section class="roadmap" id="roadmap">
-    <h2>Roadmap to the platinum</h2>
-    <div class="stages" id="stages"></div>
-  </section>
+<section class="roadmap" id="roadmap">
+  <h2>Roadmap to the platinum</h2>
+  <p class="section-note">Built from the official descriptions. PowerPyx rates the set 4 out of 10 and puts the platinum near 200 hours; Push Square warns to set aside up to 300 hours. Most of that time is the 100% checklist in Stage 6.</p>
+  <ol class="stages">
+    <li><strong>Stage 1 — Play the story, and meditate in Chapter 1.</strong> Finish Chapters 1–4 and the final mission (12 story trophies). Do the Jason&rsquo;s-house meditation before Chapter 1 ends. Cheats disable trophies and saving, so leave them off.</li>
+    <li><strong>Stage 2 — Side characters.</strong> Finish the final mission for Andy, Kenton, Billy, Randy and Tyrone, and complete 8 Strangers &amp; Freaks strands. GTA Zone reports Kirk, Kyle, Yago and Pilot Pete count toward the 8; Andy, Billy, Tyrone and Yasmani have their own trophies and do not.</li>
+    <li><strong>Stage 3 — Activities.</strong> Gold all 42 Shooting Range challenges, win a drone race at all 14 Top Fun locations, win 20 different races, land 250 stunts, beat Cal at fishing, finish one arcade game and one bowling game, and meditate at all 18 spots.</li>
+    <li><strong>Stage 4 — Collectibles and the map.</strong> Complete 3 card sets, WAiNK It at 100 locations, discover 100 vehicles, and clear the fog from all 52 areas of Leonida.</li>
+    <li><strong>Stage 5 — Crime and money.</strong> Rob 5 bank vaults, one illegal operation per gang (9 gangs), 3 shops back-to-back with your partner, and an armored truck; launder $250,000 in Marked Bills, spend $100,000 in shops, buy the 8 garages, and register 10 vehicles in the Scooter Bros app.</li>
+    <li><strong>Stage 6 — 100% Completion.</strong> Open the checklist in the Progress menu and clear every line. Only 15 of the 18 meditations are needed for 100%, but all 18 are needed for Positive Mental Attitude.</li>
+    <li><strong>Stage 7 — Platinum.</strong> <em>Vice Got a Price!</em> pops the moment the other 54 are done.</li>
+  </ol>
+</section>
 
-  <section class="tracker" id="tracker">
-    <h2>Trophy tracker</h2>
-    <div class="toolbar">
-      <label class="search">Search
-        <input type="search" id="search" placeholder="Trophy name, mission, keyword…" autocomplete="off">
-      </label>
-      <div class="filters" id="kind-filters" role="group" aria-label="Filter by kind"></div>
-      <div class="filters" id="grade-filters" role="group" aria-label="Filter by grade"></div>
-      <label class="toggle"><input type="checkbox" id="spoiler-toggle" checked> Hide story trophies until earned (spoiler-safe)</label>
-      <label class="toggle"><input type="checkbox" id="hide-earned"> Hide earned</label>
-      <label class="toggle">Sort
-        <select id="sort">
-          <option value="list">List order</option>
-          <option value="grade">Grade (Platinum first)</option>
-          <option value="name">Name A–Z</option>
-        </select>
-      </label>
-      <div class="io">
-        <button type="button" id="export-btn">Export progress</button>
-        <button type="button" id="import-btn">Import progress</button>
-        <input type="file" id="import-file" accept="application/json,.json" hidden>
-        <button type="button" id="reset-btn" class="danger">Reset progress</button>
-      </div>
-    </div>
-    <p class="result-count" id="result-count" aria-live="polite"></p>
-    <div class="cards" id="cards"></div>
-    <p class="empty" id="empty" hidden>No trophies match these filters. Clear the search or pick another kind.</p>
-  </section>
+<section class="controls" aria-label="Tracker controls">
+  <label class="search">Search <input id="search" type="search" placeholder="Trophy name, mission, place…" autocomplete="off"></label>
+  <label>Kind
+    <select id="kind">
+      <option value="all">All kinds</option>
+      <option value="story">Story</option>
+      <option value="missable">Missable</option>
+      <option value="side">Side missions</option>
+      <option value="activities">Activities</option>
+      <option value="collectibles">Collectibles</option>
+      <option value="crime">Crime &amp; heists</option>
+      <option value="money">Money &amp; property</option>
+      <option value="moments">Moments</option>
+      <option value="completion">100% completion</option>
+      <option value="platinum">Platinum</option>
+    </select>
+  </label>
+  <label>Grade
+    <select id="grade">
+      <option value="all">All grades</option>
+      <option value="platinum">Platinum</option>
+      <option value="gold">Gold</option>
+      <option value="silver">Silver</option>
+      <option value="bronze">Bronze</option>
+    </select>
+  </label>
+  <label class="check"><input id="spoiler" type="checkbox" checked> Hide story spoilers until earned</label>
+  <label class="check"><input id="hideEarned" type="checkbox"> Hide earned</label>
+  <button id="export" type="button">Export progress</button>
+  <label class="import">Import progress <input id="import" type="file" accept="application/json,.json"></label>
+  <button id="reset" type="button">Reset</button>
+</section>
 
-  <section class="notes">
-    <h2>Good to know</h2>
-    <ul>
-      <li><strong>One playthrough is enough.</strong> There is no mission replay, but nothing is locked after the story — free-roam stays open.</li>
-      <li><strong>Cheats switch trophies off.</strong> GTABase and TechWiser report that any cheat disables trophy tracking and saving; the only fix is a clean save.</li>
-      <li><strong>100% is lenient.</strong> PowerPyx puts it at roughly 60% of true completion; you need 70 of the 80 Challenges. Only Robberies, Underwater Discoveries, Shooting Ranges, Drone Races and Bret's Quests ask for everything.</li>
-      <li><strong>Five trophies are still unconfirmed.</strong> In The Beginning…, Capital Offense, Bad Luck, I Guess, The Truth Is Out There and Ten Pin have no confirmed method yet (18 Nov 2026). Their cards say so plainly instead of guessing.</li>
-      <li><strong>Progress lives in your browser.</strong> Tick a trophy and it is saved locally. Export to back it up, import to restore it on another device.</li>
-    </ul>
-  </section>
-</main>
+<p class="count" id="count"></p>
+<main id="list" class="list"></main>
+
+<section class="sources" id="sources">
+  <h2>Sources — where each fact comes from</h2>
+  <p>Names, descriptions and grades are the official list as PlayStation publishes it (Exophase and PSNProfiles agree on all 55). Every guide above is written in this entry&rsquo;s own words and names its source beside it; nothing is copied from another guide. Counts (42 range challenges, 14 drone locations, 18 meditations, 52 areas, 9 gangs, 8 garages) are the numbers the cited guides report from the finished game. Five trophies are marked <strong>unconfirmed</strong> because no published guide had confirmed a method for them when this guide was written (20 November 2026) — the guide says so instead of guessing.</p>
+  <ul id="sourceList"></ul>
+</section>
 
 <footer>
-  <h2>Sources</h2>
-  <ul id="source-list"></ul>
-  <p class="fine">Trophy names, descriptions and grades follow the official list as published by Exophase and PSNProfiles (18 November 2026). Guidance is written in our own words; quoted facts are cited per trophy. This guide is not affiliated with Rockstar Games, Sony or PlayStation, and uses no Rockstar artwork or logos.</p>
-  <p class="fine">Vice Coast Trophy Guide — built for the make.fun bounty gta6-trophy-guide-01.</p>
+  <p>Offline by design: this page loads only its own files and fetches nothing from the network. No Rockstar Games logo, artwork or game screenshot is used; the look is original. Grand Theft Auto VI is developed and published by Rockstar Games. Trophy names and descriptions are shown as PlayStation publishes them. MIT licensed.</p>
 </footer>
-
-<script src="app.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>
