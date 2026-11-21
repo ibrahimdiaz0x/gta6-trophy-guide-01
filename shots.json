@@ -1,38 +1,38 @@
 [
   {
     "file": "1-cover.jpg",
-    "label": "Cover: hero, progress bar and filters at the top of the guide",
     "path": "/",
     "viewport": {
-      "height": 800,
-      "width": 1280
-    }
+      "width": 1280,
+      "height": 800
+    },
+    "label": "Top of the guide: title, progress meter and the filter row"
   },
   {
     "file": "2-roadmap.jpg",
-    "label": "Roadmap: the four steps to the platinum",
     "path": "/#roadmap",
     "viewport": {
-      "height": 800,
-      "width": 1280
-    }
+      "width": 1280,
+      "height": 800
+    },
+    "label": "The roadmap section: four steps toward the platinum"
   },
   {
     "file": "3-missables.jpg",
-    "label": "Missables: only the one missable trophy, Positive Mental Attitude",
     "path": "/#missables",
     "viewport": {
-      "height": 800,
-      "width": 1280
-    }
+      "width": 1280,
+      "height": 800
+    },
+    "label": "Missable filter on: just the one trophy that can be missed"
   },
   {
     "file": "4-spoilers.jpg",
-    "label": "Spoilers on: hidden story trophies revealed with their guides",
     "path": "/#spoilers",
     "viewport": {
-      "height": 800,
-      "width": 1280
-    }
+      "width": 1280,
+      "height": 800
+    },
+    "label": "Spoilers switched on: hidden story trophies shown in full"
   }
 ]

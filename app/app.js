@@ -1,141 +1,131 @@
-// Vice Coast Trophy Guide — plain client-side tracker, no build step.
-// It fetches data/trophies.json, renders the 55 cards, and keeps the
-// earned set in localStorage so progress survives a reload.
+// Vice Coast Trophy Guide — client-side tracker, no build step, no network.
+// Loads data/trophies.json, draws the 55 trophy cards, and remembers which
+// ones you ticked in localStorage. Nothing is sent anywhere.
 
-const DATA_URL = 'data/trophies.json';
-const STORE_KEY = 'vice-coast-trophies-v1';
+const DATA_PATH = 'data/trophies.json';
+const SAVE_KEY = 'vice-coast-trophy-progress-v1';
 
-const $ = (id) => document.getElementById(id);
-const searchEl = $('search');
-const gradeEl = $('grade');
-const kindEl = $('kind');
-const missableEl = $('missableOnly');
-const hideEarnedEl = $('hideEarned');
-const spoilersEl = $('spoilers');
-const listEl = $('list');
-const countEl = $('count');
-const barEl = $('bar');
-const progressEl = $('progress');
+const grab = (id) => document.getElementById(id);
+const queryBox = grab('search');
+const gradePick = grab('grade');
+const kindPick = grab('kind');
+const missableBox = grab('missableOnly');
+const hideDoneBox = grab('hideEarned');
+const spoilerBox = grab('spoilers');
+const grid = grab('list');
+const tallyLine = grab('count');
+const fill = grab('bar');
+const tally = grab('progress');
 
-let trophies = [];
-let earned = new Set();
+let catalog = [];
+let done = new Set();
 try {
-  earned = new Set(JSON.parse(localStorage.getItem(STORE_KEY) || '[]'));
+  done = new Set(JSON.parse(localStorage.getItem(SAVE_KEY) || '[]'));
 } catch {
-  earned = new Set();
+  done = new Set();
 }
-function save() {
-  localStorage.setItem(STORE_KEY, JSON.stringify([...earned].sort((a, b) => a - b)));
-}
-
-function shownName(t) {
-  if (t.hidden && !spoilersEl.checked && !earned.has(t.id)) return 'Hidden trophy';
-  return t.name;
-}
-function shownDescription(t) {
-  if (t.hidden && !spoilersEl.checked && !earned.has(t.id)) return 'A story trophy — its name is hidden until you earn it or turn spoilers on.';
-  return t.description;
-}
-function shownGuide(t) {
-  if (t.hidden && !spoilersEl.checked && !earned.has(t.id)) return 'Earn it in the story, or turn on “Show story spoilers” to read the guide.';
-  return t.guide;
+function persist() {
+  localStorage.setItem(SAVE_KEY, JSON.stringify([...done].sort((a, b) => a - b)));
 }
 
-function matches(t) {
-  const q = searchEl.value.trim().toLowerCase();
-  if (q) {
-    const hay = `${t.name} ${t.description} ${t.guide} ${t.kind}`.toLowerCase();
-    if (!hay.includes(q)) return false;
+function displayName(item) {
+  if (item.hidden && !spoilerBox.checked && !done.has(item.id)) return 'Hidden trophy';
+  return item.name;
+}
+function displayBlurb(item) {
+  if (item.hidden && !spoilerBox.checked && !done.has(item.id)) return 'A story trophy — its name stays hidden until you earn it or switch spoilers on.';
+  return item.description;
+}
+function displayGuide(item) {
+  if (item.hidden && !spoilerBox.checked && !done.has(item.id)) return 'Earn it in the story, or switch on “Show story spoilers” to read the guide.';
+  return item.guide;
+}
+
+function passesFilters(item) {
+  const needle = queryBox.value.trim().toLowerCase();
+  if (needle) {
+    const haystack = `${item.name} ${item.description} ${item.guide} ${item.kind}`.toLowerCase();
+    if (!haystack.includes(needle)) return false;
   }
-  if (gradeEl.value !== 'all' && t.grade !== gradeEl.value) return false;
-  if (kindEl.value !== 'all' && t.kind !== kindEl.value) return false;
-  if (missableEl.checked && !t.missable) return false;
-  if (hideEarnedEl.checked && earned.has(t.id)) return false;
+  if (gradePick.value !== 'all' && item.grade !== gradePick.value) return false;
+  if (kindPick.value !== 'all' && item.kind !== kindPick.value) return false;
+  if (missableBox.checked && !item.missable) return false;
+  if (hideDoneBox.checked && done.has(item.id)) return false;
   return true;
 }
 
-function card(t) {
-  const el = document.createElement('article');
-  el.className = 'card';
-  const name = document.createElement('h3');
-  name.textContent = shownName(t);
-  const desc = document.createElement('p');
-  desc.className = 'desc';
-  desc.textContent = shownDescription(t);
-  const badges = document.createElement('p');
-  badges.className = 'badges';
-  const grade = document.createElement('span');
-  grade.className = 'badge grade-' + t.grade;
-  grade.textContent = t.grade.toUpperCase();
-  badges.append(grade);
-  const kind = document.createElement('span');
-  kind.className = 'badge kind';
-  kind.textContent = t.kind.toUpperCase();
-  badges.append(kind);
-  if (t.missable) {
-    const m = document.createElement('span');
-    m.className = 'badge missable';
-    m.textContent = 'MISSABLE';
-    badges.append(m);
-  }
-  if (t.hidden) {
-    const h = document.createElement('span');
-    h.className = 'badge hidden';
-    h.textContent = 'HIDDEN';
-    badges.append(h);
-  }
-  const guide = document.createElement('p');
-  guide.className = 'guide';
-  guide.textContent = shownGuide(t);
-  const src = document.createElement('p');
-  src.className = 'sources';
-  src.textContent = 'Sources: ' + t.sources.join(' · ');
-  const label = document.createElement('label');
-  label.className = 'earned';
+function pill(text, extra) {
+  const tag = document.createElement('span');
+  tag.className = 'pill ' + extra;
+  tag.textContent = text;
+  return tag;
+}
+
+function buildCard(item) {
+  const card = document.createElement('article');
+  card.className = 'trophy-card';
+  const title = document.createElement('h3');
+  title.textContent = displayName(item);
+  const blurb = document.createElement('p');
+  blurb.className = 'blurb';
+  blurb.textContent = displayBlurb(item);
+  const pills = document.createElement('p');
+  pills.className = 'pills';
+  pills.append(pill(item.grade.toUpperCase(), 'grade-' + item.grade), pill(item.kind.toUpperCase(), 'kind'));
+  if (item.missable) pills.append(pill('MISSABLE', 'missable'));
+  if (item.hidden) pills.append(pill('HIDDEN', 'hidden'));
+  const howto = document.createElement('p');
+  howto.className = 'howto';
+  howto.textContent = displayGuide(item);
+  const cite = document.createElement('p');
+  cite.className = 'cite';
+  cite.textContent = 'Sources: ' + item.sources.join(' · ');
+  const tick = document.createElement('label');
+  tick.className = 'tick';
   const box = document.createElement('input');
   box.type = 'checkbox';
-  box.checked = earned.has(t.id);
+  box.checked = done.has(item.id);
   box.addEventListener('change', () => {
-    if (box.checked) earned.add(t.id); else earned.delete(t.id);
-    save();
-    render();
+    if (box.checked) done.add(item.id); else done.delete(item.id);
+    persist();
+    renderList();
   });
-  label.append(box, document.createTextNode(' Earned'));
-  el.append(name, desc, badges, guide, src, label);
-  return el;
+  tick.append(box, document.createTextNode(' Earned'));
+  card.append(title, blurb, pills, howto, cite, tick);
+  return card;
 }
 
-function render() {
-  const visible = trophies.filter(matches);
-  listEl.replaceChildren(...visible.map(card));
-  const done = trophies.filter((t) => earned.has(t.id)).length;
-  const total = trophies.length;
-  const pct = total ? Math.round((done / total) * 100) : 0;
-  barEl.style.width = pct + '%';
-  progressEl.textContent = done + ' of ' + total + ' earned';
-  const spoilerNote = spoilersEl.checked ? ' (spoilers shown)' : ' (story spoilers hidden)';
-  countEl.textContent = 'Showing ' + visible.length + ' of ' + total + ' trophies' + spoilerNote;
+function renderList() {
+  const visible = catalog.filter(passesFilters);
+  grid.replaceChildren(...visible.map(buildCard));
+  const earned = catalog.filter((item) => done.has(item.id)).length;
+  const total = catalog.length;
+  const pct = total ? Math.round((earned / total) * 100) : 0;
+  fill.style.width = pct + '%';
+  tally.textContent = earned + ' of ' + total + ' earned';
+  const spoilerNote = spoilerBox.checked ? ' (spoilers shown)' : ' (story spoilers hidden)';
+  tallyLine.textContent = 'Showing ' + visible.length + ' of ' + total + ' trophies' + spoilerNote;
 }
 
-function exportProgress() {
-  const blob = new Blob([JSON.stringify({ earned: [...earned].sort((a, b) => a - b) }, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'gta6-trophies-progress.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
+function downloadProgress() {
+  const blob = new Blob([JSON.stringify({ earned: [...done].sort((a, b) => a - b) }, null, 2)], { type: 'application/json' });
+  const anchor = document.createElement('a');
+  anchor.href = URL.createObjectURL(blob);
+  anchor.download = 'vice-coast-progress.json';
+  anchor.click();
+  URL.revokeObjectURL(anchor.href);
 }
 
-function importProgress(file) {
+function uploadProgress(file) {
   const reader = new FileReader();
   reader.onload = () => {
     try {
-      const data = JSON.parse(String(reader.result));
-      const ids = Array.isArray(data) ? data : data.earned;
+      const parsed = JSON.parse(String(reader.result));
+      const ids = Array.isArray(parsed) ? parsed : parsed.earned;
       if (!Array.isArray(ids)) throw new Error('no list');
-      earned = new Set(ids.filter((n) => Number.isInteger(n) && n >= 1 && n <= 55));
-      save();
-      render();
+      done = new Set(ids.filter((n) => Number.isInteger(n) && n >= 1 && n <= 55));
+      persist();
+      renderList();
     } catch {
       alert('That file is not a progress export from this guide.');
     }
@@ -143,24 +133,24 @@ function importProgress(file) {
   reader.readAsText(file);
 }
 
-for (const el of [searchEl, gradeEl, kindEl, missableEl, hideEarnedEl, spoilersEl]) {
-  el.addEventListener('input', render);
-  el.addEventListener('change', render);
+for (const control of [queryBox, gradePick, kindPick, missableBox, hideDoneBox, spoilerBox]) {
+  control.addEventListener('input', renderList);
+  control.addEventListener('change', renderList);
 }
-$('exportBtn').addEventListener('click', exportProgress);
-$('importFile').addEventListener('change', (e) => {
-  if (e.target.files && e.target.files[0]) importProgress(e.target.files[0]);
-  e.target.value = '';
+grab('exportBtn').addEventListener('click', downloadProgress);
+grab('importFile').addEventListener('change', (event) => {
+  if (event.target.files && event.target.files[0]) uploadProgress(event.target.files[0]);
+  event.target.value = '';
 });
 
-const data = await fetch(DATA_URL).then((r) => r.json());
-trophies = data.trophies;
+const payload = await fetch(DATA_PATH).then((response) => response.json());
+catalog = payload.trophies;
 
-// Deep links: #roadmap, #missables, #spoilers, #list. Filter checkboxes
-// are set before the first render; scrolling happens after it, once the
-// list exists and the page has its full height.
-if (location.hash === '#missables') missableEl.checked = true;
-else if (location.hash === '#spoilers') spoilersEl.checked = true;
-render();
+// Deep links: #roadmap, #missables, #spoilers, #list. The checkboxes are
+// set before the first render; scrolling waits until after it, once the
+// grid exists and the page has its full height.
+if (location.hash === '#missables') missableBox.checked = true;
+else if (location.hash === '#spoilers') spoilerBox.checked = true;
+renderList();
 if (location.hash === '#roadmap') document.getElementById('roadmap').scrollIntoView();
 else if (location.hash === '#missables' || location.hash === '#spoilers' || location.hash === '#list') document.querySelector('main').scrollIntoView();
