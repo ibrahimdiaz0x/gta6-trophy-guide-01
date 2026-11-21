@@ -1,86 +1,53 @@
-:root {
-  color-scheme: dark;
-  --bg: #0e0a14;
-  --panel: #1b1426;
-  --panel-2: #241a33;
-  --text: #f2ecf7;
-  --muted: #b9aec9;
-  --line: #3a2d4d;
-  --pink: #ff2e88;
-  --violet: #7b5cff;
-  --gold: #f5c542;
-  --silver: #cfd6e4;
-  --bronze: #d08a4b;
-  --green: #3ddc97;
-}
+/* Vice Coast Trophy Guide — dark guide theme, no build step. */
 * { box-sizing: border-box; }
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+:root {
+  --bg: #0a1420;
+  --panel: #101c2e;
+  --card: #132238;
+  --line: #24344d;
+  --text: #e8eef7;
+  --muted: #9fb0c7;
+  --accent: #f2b544;
+  --accent-ink: #1a1305;
+  --teal: #2dd4bf;
 }
-.hero {
-  padding: 56px 20px 32px;
-  background: linear-gradient(115deg, #2b1055 0%, #7597de 55%, #ff2e88 130%);
-}
-.hero h1 { margin: 8px 0; font-size: 2.4rem; line-height: 1.1; }
-.kicker { margin: 0; letter-spacing: .14em; text-transform: uppercase; font-size: .8rem; color: #e8ddff; }
-.lede { max-width: 720px; margin: 8px 0 20px; font-size: 1.05rem; }
-.progress-wrap { max-width: 720px; }
-.progress-bar { height: 10px; border-radius: 6px; background: rgba(255,255,255,.25); overflow: hidden; }
-.progress-bar div { height: 100%; background: var(--green); border-radius: 6px; transition: width .2s; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+.hero { padding: 40px 20px 28px; background: linear-gradient(135deg, #0e2a3f, #123f3a 55%, #3d2f10); }
+.hero h1 { margin: 6px 0 10px; font-size: 2.1rem; line-height: 1.1; }
+.kicker { margin: 0; color: var(--teal); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.lede { max-width: 640px; color: #d6e2ef; }
+.progress-wrap { max-width: 640px; }
+.progress-bar { height: 10px; background: rgba(255,255,255,0.18); border-radius: 6px; overflow: hidden; }
+.progress-bar > div { height: 100%; background: var(--accent); width: 0%; transition: width 0.25s ease; }
 #progress { margin: 8px 0 0; font-weight: 600; }
-.controls {
-  display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: end;
-  padding: 16px 20px; background: var(--panel); border-bottom: 1px solid var(--line);
-}
-.controls label { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; color: var(--muted); }
-.controls label.check { flex-direction: row; align-items: center; gap: 6px; color: var(--text); padding-bottom: 6px; }
-.controls input[type="search"], .controls select {
-  background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
-  border-radius: 8px; padding: 8px 10px; font: inherit;
-}
-.controls button, .controls .import {
-  background: var(--pink); color: #fff; border: 0; border-radius: 8px;
-  padding: 9px 14px; font: inherit; cursor: pointer;
-}
+.controls { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; padding: 16px 20px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.controls label { display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: 0.92rem; }
+.controls input[type="search"], .controls select { background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; font: inherit; }
+.controls .check { cursor: pointer; }
+.controls button, .controls .import { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 6px; padding: 8px 14px; font: inherit; font-weight: 700; cursor: pointer; }
 .controls .import input { display: none; }
-.roadmap { padding: 28px 20px; max-width: 900px; }
-.roadmap h2 { margin-top: 0; }
-.roadmap ol { padding-left: 22px; }
-.roadmap li { margin-bottom: 10px; }
-.callout {
-  background: #2a1c10; border: 1px solid #6b4a1f; border-radius: 10px;
-  padding: 12px 16px;
-}
-main { padding: 8px 20px 32px; }
+.roadmap { max-width: 860px; margin: 0 auto; padding: 26px 20px 8px; }
+.roadmap h2 { margin: 0 0 10px; }
+.roadmap ol { margin: 0; padding-left: 22px; }
+.roadmap li { margin: 0 0 10px; }
+.callout { background: #2a1f0d; border: 1px solid #6b4d16; border-radius: 8px; padding: 12px 14px; }
+main { max-width: 1100px; margin: 0 auto; padding: 10px 20px 30px; }
 #count { color: var(--muted); }
 .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
-.card {
-  background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
-  padding: 16px;
-}
-.card h3 { margin: 0 0 4px; font-size: 1.1rem; }
-.card .desc { margin: 0 0 10px; color: var(--muted); }
-.card .guide { margin: 10px 0; }
-.badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-.badge {
-  font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-  border-radius: 5px; padding: 3px 7px; background: var(--panel-2); color: var(--text);
-}
-.badge.platinum { background: #e8f4ff; color: #123; }
-.badge.gold { background: var(--gold); color: #241a00; }
-.badge.silver { background: var(--silver); color: #1c2333; }
-.badge.bronze { background: var(--bronze); color: #241407; }
-.badge.missable { background: #c0392b; color: #fff; }
-.badge.hidden { background: #5b4a7a; color: #fff; }
-.card .sources { font-size: .8rem; color: var(--muted); margin: 8px 0 12px; }
-.card label.earned { display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; }
-.card.earned { border-color: var(--green); }
-.card.earned h3 { color: var(--green); }
-footer { padding: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
-@media (max-width: 640px) {
-  .hero h1 { font-size: 1.8rem; }
-  .controls { flex-direction: column; align-items: stretch; }
-}
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.card h3 { margin: 0 0 4px; font-size: 1.05rem; }
+.card .desc { margin: 0 0 8px; color: var(--muted); }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.badge { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; border-radius: 4px; padding: 2px 7px; background: #22314a; color: #cdd9ea; }
+.badge.grade-platinum { background: #155e75; color: #bae6fd; }
+.badge.grade-gold { background: #713f12; color: #fde68a; }
+.badge.grade-silver { background: #334155; color: #e2e8f0; }
+.badge.grade-bronze { background: #431407; color: #fdba74; }
+.badge.missable { background: #7f1d1d; color: #fecaca; }
+.badge.hidden { background: #1e293b; color: #94a3b8; }
+.card .guide { margin: 0 0 8px; }
+.card .sources { margin: 0 0 10px; font-size: 0.82rem; color: var(--muted); }
+.card .earned { display: flex; gap: 8px; align-items: center; font-weight: 600; cursor: pointer; }
+.card .earned input { width: 18px; height: 18px; accent-color: var(--accent); }
+footer { max-width: 1100px; margin: 0 auto; padding: 0 20px 30px; color: var(--muted); font-size: 0.88rem; }
+@media (max-width: 640px) { .hero h1 { font-size: 1.6rem; } }

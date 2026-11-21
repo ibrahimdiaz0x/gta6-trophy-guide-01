@@ -4,7 +4,7 @@
 [![rank](https://make.fun/badge/gta6-trophy-guide-01/ibrahimdiaz0x/gta6-trophy-guide-01/rank.svg)](https://make.fun/bounty/gta6-trophy-guide-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-trophy-guide-01)
 [![reward](https://make.fun/badge/gta6-trophy-guide-01/ibrahimdiaz0x/gta6-trophy-guide-01/reward.svg)](https://make.fun/bounty/gta6-trophy-guide-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-trophy-guide-01)
 
-Vice Coast Trophy Guide — an offline tracker for all 55 official GTA VI trophies, with a guide for each, a platinum roadmap, filters and a spoiler setting.
+Vice Coast Trophy Guide — an offline tracker for all 55 official GTA VI trophies, with a guide for each one, a platinum roadmap, filters and a spoiler setting. Tick trophies off as you earn them, filter by grade or kind, hide the story trophies until you earn them, and export your progress to take it to another device. One trophy is missable (Positive Mental Attitude — meditate at all 18 spots), and the guide flags it up front.
 
 ## Run it
 
@@ -12,33 +12,28 @@ Vice Coast Trophy Guide — an offline tracker for all 55 official GTA VI trophi
 node serve.ts
 ```
 
-Then open the address serve.ts prints. No build step, no network calls: the guide runs entirely in your browser, and your progress is stored only in localStorage.
-
-## What it covers
-
-- All 55 official GTA VI trophies (1 platinum, 2 gold, 6 silver, 46 bronze) in story order, each with its own guide written for this page.
-- A checklist that saves your progress in the browser, with export and import so you can move it to another device.
-- Filters by grade and kind, search, a missable-only view, a hide-earned toggle, and a spoiler setting that keeps hidden story trophies masked until you earn them or choose to reveal them.
-- A 4-step platinum roadmap, with the one missable trophy — Positive Mental Attitude, meditate at all 18 spots — called out before the story moves past it.
-- Trophy names, descriptions and grades follow the official 55-trophy list for Grand Theft Auto VI (PlayStation 5). Sources per trophy: Exophase trophy list and the PSNProfiles trophy guide.
+Then open http://localhost:8080. No build step, no network — the guide runs entirely from its own files.
 
 ## Structure
 
-- `app/index.html` — page shell: hero, progress bar, filters, roadmap, checklist.
-- `app/style.css` — Vice City styling.
-- `app/app.js` — rendering, filters, progress storage, export/import, deep links.
-- `app/data/trophies.json` — the 55 trophies with grades, kinds, hidden/missable flags, sources and guides.
-- `shots.json` — the 4 screenshots below.
-- `screenshots/` — the screenshots.
-- `main.ts` — the make.fun program entrypoint (copies the app and screenshots, writes the dossier).
-- `serve.ts` — local static server for trying the guide.
+- `app/index.html` — the guide page: hero, progress bar, filters, roadmap, trophy grid.
+- `app/style.css` — the guide's theme.
+- `app/app.js` — checklist state (localStorage), filters, spoiler setting, export/import.
+- `app/data/trophies.json` — the official 55 trophies with grades, kinds, hidden flags, the one missable flag, sources and an original guide per trophy.
+- `main.ts` — the entrypoint: copies `app/` and `screenshots/` to the output and writes `dossier.json`.
+- `serve.ts` — a tiny static server for local use.
+- `screenshots/` — the four views below, taken at 1280×800.
 
 ## Screenshots
 
-1. `1-cover.jpg` — the guide's front page: hero, progress and filters.
-2. `2-roadmap.jpg` — the platinum roadmap.
-3. `3-missables.jpg` — the missable-only view: just Positive Mental Attitude.
-4. `4-spoilers.jpg` — the full list with story spoilers revealed.
+- `1-cover.jpg` — the guide's top: hero, progress and filters.
+- `2-roadmap.jpg` — the four-step roadmap to the platinum.
+- `3-missables.jpg` — the missable-only filter: just Positive Mental Attitude.
+- `4-spoilers.jpg` — spoilers on: hidden story trophies revealed with their guides.
+
+## Sources
+
+Trophy names, descriptions and grades follow the official 55-trophy list for Grand Theft Auto VI (PlayStation 5). Guides are written for this page. Sources per trophy: Exophase — Grand Theft Auto VI trophy list; PSNProfiles — Grand Theft Auto VI trophy guide.
 
 ---
 
