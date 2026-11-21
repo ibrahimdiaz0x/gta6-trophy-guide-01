@@ -26,8 +26,10 @@ if (existsSync(join(repoRoot, 'screenshots'))) cpSync(join(repoRoot, 'screenshot
 
 // The scorer's own caps, as this build understands them: at most 4
 // screenshots, each at most 256 KiB, and the app folder within its file
-// and byte caps. The dossier call below enforces them.
+// and byte caps. They live in one named constant so the dossier call
+// below stays readable, and the call itself enforces them.
+const DOSSIER_OPTIONS = { text_max_bytes: 163840, screenshots: { max: 4, max_bytes: 262144 }, app_max_files: 993, app_max_bytes: 50331648 };
 writeFileSync(
   join(OUTPUT_DIR, 'dossier.json'),
-  buildDossier(OUTPUT_DIR, { text_max_bytes: 163840, screenshots: { max: 4, max_bytes: 262144 }, app_max_files: 993, app_max_bytes: 50331648 }),
+  buildDossier(OUTPUT_DIR, DOSSIER_OPTIONS),
 );
