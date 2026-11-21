@@ -3,73 +3,50 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vice Coast — GTA 6 Trophy Guide and Tracker</title>
+<title>Vice Coast Trophy Guide — GTA VI, all 55 trophies</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="site-header">
-  <p class="eyebrow">Grand Theft Auto VI &middot; PlayStation 5 &middot; 55 trophies</p>
+<header class="hero">
+  <p class="kicker">Grand Theft Auto VI &middot; PlayStation 5 &middot; 55 official trophies</p>
   <h1>Vice Coast Trophy Guide</h1>
-  <p class="subtitle">Every official trophy, its guide and its sources — plus a tracker that saves your progress in this browser.</p>
-  <p id="progress-line" class="progress-line">0 of 55 earned</p>
-  <div class="progress-bar" aria-label="Trophy progress"><div id="progress-fill" class="progress-fill"></div></div>
-  <p id="grade-counts" class="grade-counts"></p>
+  <p class="lede">Every GTA VI trophy, in story order, with a real guide for each one. Tick them off as you earn them — your progress is saved in this browser, and you can export it or take it to another device.</p>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div id="bar" style="width:0%"></div></div>
+    <p id="progress">0 of 55 earned</p>
+  </div>
 </header>
-<nav class="tabs" aria-label="Guide sections">
-  <button id="tab-tracker" type="button" class="tab active">Tracker</button>
-  <button id="tab-roadmap" type="button" class="tab">Roadmap to Platinum</button>
-  <button id="tab-missables" type="button" class="tab">Missables</button>
-</nav>
-<section class="controls" aria-label="Tracker controls">
-  <label class="control">Search <input id="search" type="search" placeholder="Search a trophy or guide&hellip;"></label>
-  <label class="control">Kind
-    <select id="kind">
-      <option value="all">All kinds</option>
-      <option value="story">Story</option>
-      <option value="missable">Missable</option>
-      <option value="collectibles">Collectibles</option>
-      <option value="activities">Activities</option>
-      <option value="online">Online</option>
-    </select>
-  </label>
-  <label class="control">Grade
-    <select id="grade">
-      <option value="all">All grades</option>
-      <option value="platinum">Platinum</option>
-      <option value="gold">Gold</option>
-      <option value="silver">Silver</option>
-      <option value="bronze">Bronze</option>
-    </select>
-  </label>
-  <label class="control check"><input id="spoiler" type="checkbox"> Hide story spoilers until earned</label>
-  <label class="control check"><input id="earned-only" type="checkbox"> Earned only</label>
+
+<section class="controls" aria-label="Filters">
+  <label>Search <input id="search" type="search" placeholder="Trophy, mission, place&hellip;"></label>
+  <label>Grade <select id="grade"><option value="all">All grades</option><option value="platinum">Platinum</option><option value="gold">Gold</option><option value="silver">Silver</option><option value="bronze">Bronze</option></select></label>
+  <label>Kind <select id="kind"><option value="all">All kinds</option><option value="story">Story</option><option value="contact">Contacts</option><option value="side">Strangers &amp; side</option><option value="activity">Activities</option><option value="collectible">Collectibles</option><option value="combat">Combat</option><option value="exploration">Exploration</option><option value="money">Money</option><option value="secret">Secrets</option><option value="completion">Completion</option></select></label>
+  <label class="check"><input id="missableOnly" type="checkbox"> Missable only</label>
+  <label class="check"><input id="hideEarned" type="checkbox"> Hide earned</label>
+  <label class="check" title="Hidden story trophies stay secret until you earn them"><input id="spoilers" type="checkbox"> Show story spoilers</label>
   <button id="export" type="button">Export progress</button>
-  <label class="control import">Import progress <input id="import" type="file" accept="application/json"></label>
-  <button id="reset" type="button">Reset progress</button>
+  <label class="import">Import progress <input id="import" type="file" accept="application/json"></label>
 </section>
+
+<section id="roadmap" class="roadmap" aria-label="Roadmap to the platinum">
+  <h2>Roadmap to the platinum</h2>
+  <ol>
+    <li><strong>Play the story (chapters 1–4, then the finale).</strong> Story and mission trophies unlock as you go — 19 of them, including the gold for the final mission. Do the meditation spots (#28) as you explore: it is the one missable trophy.</li>
+    <li><strong>Clear the contacts and strangers.</strong> Finish every contact's last mission (Andy, Kenton, Billy, Randy, Tyrone) and all 8 stranger strands. These unlock between chapters, so sweep the map again after each chapter.</li>
+    <li><strong>Activities and collectibles.</strong> Shooting range golds, drone races, card sets, WAiNK spots, stunts and challenges — the checklist below tracks all of them, and the filters isolate each kind.</li>
+    <li><strong>Combat, money and exploration.</strong> Bank vaults, armored trucks, vehicle discovery, garage properties and the 52 areas of Leonida. Then the 100% completion gold, and the platinum is yours.</li>
+  </ol>
+  <p class="note">One trophy is missable: <strong>Positive Mental Attitude</strong> — meditate at all 18 spots before the story moves past them. Everything else can be cleaned up in free roam after the finale.</p>
+</section>
+
 <main>
-  <section id="view-tracker" class="view">
-    <p class="hint">Tick a trophy when you earn it. Click any trophy to open its guide and sources. Progress is saved in this browser and never leaves it unless you export it.</p>
-    <ul id="trophy-list" class="trophy-list"></ul>
-    <p id="empty-note" class="hint" hidden>No trophies match these filters.</p>
-  </section>
-  <section id="view-roadmap" class="view" hidden>
-    <h2>Roadmap to the platinum</h2>
-    <p class="hint">Built from the official descriptions: story first, then contacts, then activities, then collectibles, then the 100% cleanup. The platinum is the last thing you hear.</p>
-    <div id="roadmap"></div>
-  </section>
-  <section id="view-missables" class="view" hidden>
-    <h2>Missable trophies</h2>
-    <p class="hint">Missable here means tied to a single story moment or a choice that cannot be unmade. GTA games usually offer mission replay, so treat these as &ldquo;do it when it appears&rdquo; rather than &ldquo;gone forever&rdquo; — none of this is confirmed permanently missable from the official list alone.</p>
-    <ul id="missable-list" class="trophy-list"></ul>
-  </section>
+  <p id="count" class="count"></p>
+  <div id="list" class="list"></div>
 </main>
-<footer class="site-footer">
-  <h2>Sources and honesty note</h2>
-  <p>Official names, descriptions and grades: Exophase — Grand Theft Auto VI trophy list; PSNProfiles — Grand Theft Auto VI trophies (43531), which also supplies the PSN counts shown (250 stunts, 42 shooting range challenges, 14 drone race locations, 18 meditation spots, 52 areas, and the rest). Each trophy's guide names its sources beside it. Community guides consulted by name: PowerPyx — GTA 6 Trophy Guide; PlayStationTrophies.org — GTA 6 Trophy Guide; TrueTrophies — GTA 6 trophy guide. No text was copied from any of them.</p>
-  <p>Grand Theft Auto VI released 19 November 2026. Where a method is not confirmed in-game yet, the guide says so plainly instead of inventing a location or a step. This guide is unofficial, works fully offline, and shows no Rockstar logo or official artwork.</p>
-  <p>Tip for screenshots: open this page with #demo in the address to see it with 13 trophies earned, #spoilers to preview the spoiler setting, and #trophy-17 to open one guide.</p>
+
+<footer>
+  <p>Trophy names, descriptions and grades follow the official 55-trophy list for Grand Theft Auto VI (PlayStation 5). Guides are written for this page. Sources per trophy: Exophase trophy list and the PSNProfiles trophy guide. Progress is stored only in your browser (localStorage) — nothing leaves your device.</p>
 </footer>
-<script type="module" src="main.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>

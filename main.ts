@@ -1,19 +1,17 @@
-// Vice Coast Trophy Guide — hand-in program (Node 22, standard library only).
+// A working gta6-trophy-guide-01 entry (Node 22, standard library only): the guide is this directory's app/ folder,
+// plain static files a browser opens at app/index.html (ES modules, CSS, no build step), offline: it loads nothing
+// over the network, and its trophy list and guides are app/data/trophies.json. The program hands it in: it copies app/
+// and screenshots/ from beside this file to /output and writes /output/dossier.json, the summary the judge reads (your
+// screenshots, the first load's files and bytes, and your source), with the vendored make.fun library. Leave
+// vendor/makefun-frontend.ts as it is: the scorer requires dossier.json to be byte for byte what its own copy writes.
 //
-// The guide itself is plain static files under app/: app/index.html, its ES
-// modules, styles and data (app/data/trophies.json holds all 55 official
-// trophies with a guide each, app/data/roadmap.json the five roadmap stages).
-// It runs offline in a desktop browser with no build step. This program hands
-// the guide in: it copies app/ and screenshots/ from beside this file into
-// /output and writes /output/dossier.json with the vendored make.fun library,
-// which is the summary the judge reads (the screenshots, the first load's
-// files and bytes, and the source). Leave vendor/makefun-frontend.ts
-// untouched: the scorer requires dossier.json to be byte for byte what its
-// own copy of the library writes.
+// Only the plumbing, not a winner: a plain checklist of the 55 trophies with a one-line hint each. Write a real guide
+// for every trophy in your own words, a roadmap to the platinum, filters and a spoiler setting in app/, put 3 or 4 PNG
+// or JPEG screenshots of it in screenshots/ (the first by name is the cover; shots.json says which views this
+// starter's were taken of), and run it.
 //
-// Serve the guide locally with a static server pointed at app/, then open
-// http://localhost:8080. Outside the grader's container, MAKEFUN_OUTPUT_DIR
-// stands in for /output:
+// Serve it locally with `node serve.ts`, then open http://localhost:8080.
+// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
 import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -29,10 +27,9 @@ cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
 mkdirSync(join(out, 'screenshots'), { recursive: true });
 if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
 
-// The scorer's own caps (reference/gate.json): only text_max_bytes shapes the
-// bytes; the other limits refuse an entry the scorer would refuse (more than
-// 4 screenshots or one over 256 KiB; more than 993 files and directories in
-// app/ or 48 MiB of app files, counted beside /output's own 1000-entry cap).
+// The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
+// scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files and directories in app/ or
+// 48 MiB of app files: app/ counts beside /output's own 1000-entry cap, its screenshots/ and dossier.json).
 writeFileSync(
   join(out, 'dossier.json'),
   buildDossier(out, { text_max_bytes: 163840, screenshots: { max: 4, max_bytes: 262144 }, app_max_files: 993, app_max_bytes: 50331648 }),
