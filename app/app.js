@@ -1,92 +1,146 @@
-// Vice Coast Trophy Guide: a checklist of all 55 official GTA VI trophies.
-// Progress is ticked off and saved in this browser (localStorage); export and
-// import move the ticks to another device. Hidden story trophies stay secret
-// until earned, unless the spoiler setting is on. Views can be deep-linked:
-// #roadmap scrolls to the roadmap, #missables filters to the missable trophy,
-// #spoilers shows the hidden trophies.
 const KEY = 'gta6-trophy-guide-v1';
-const list = document.getElementById('list');
-const search = document.getElementById('search');
-const grade = document.getElementById('grade');
-const kind = document.getElementById('kind');
+const data = await fetch('data/trophies.json').then((r) => r.json());
+const trophies = data.trophies;
+
+const listEl = document.getElementById('list');
+const countEl = document.getElementById('count');
+const barEl = document.getElementById('bar');
+const progressEl = document.getElementById('progress');
+const searchEl = document.getElementById('search');
+const gradeEl = document.getElementById('grade');
+const kindEl = document.getElementById('kind');
 const missableOnly = document.getElementById('missableOnly');
 const hideEarned = document.getElementById('hideEarned');
 const spoilers = document.getElementById('spoilers');
-let earned = new Set(JSON.parse(localStorage.getItem(KEY) ?? '[]'));
-const doc = await (await fetch('data/trophies.json')).json();
+const exportBtn = document.getElementById('exportBtn');
+const importFile = document.getElementById('importFile');
 
+let earned = new Set();
+try {
+  earned = new Set(JSON.parse(localStorage.getItem(KEY) || '[]'));
+} catch {
+  earned = new Set();
+}
 function save() {
   localStorage.setItem(KEY, JSON.stringify([...earned]));
 }
 
-function visible(t) {
-  if (grade.value !== 'all' && t.grade !== grade.value) return false;
-  if (kind.value !== 'all' && t.kind !== kind.value) return false;
-  if (missableOnly.checked && !t.missable) return false;
-  if (hideEarned.checked && earned.has(t.name)) return false;
-  const q = search.value.trim().toLowerCase();
-  if (q && !(t.name + ' ' + t.description + ' ' + t.guide).toLowerCase().includes(q)) return false;
-  return true;
+function kindLabel(kind) {
+  return {
+    story: 'Story', contact: 'Contacts', side: 'Strangers & side',
+    activity: 'Activities', collectible: 'Collectibles', combat: 'Combat',
+    exploration: 'Exploration', money: 'Money', secret: 'Secret',
+    completion: 'Completion', platinum: 'Platinum'
+  }[kind] || kind;
 }
 
 function render() {
-  list.replaceChildren();
-  let shown = 0;
-  for (const t of doc.trophies) {
-    if (!visible(t)) continue;
-    shown++;
+  const q = searchEl.value.trim().toLowerCase();
+  const grade = gradeEl.value;
+  const kind = kindEl.value;
+  const showSpoilers = spoilers.checked;
+  const visible = trophies.filter((t) => {
+    if (grade !== 'all' && t.grade !== grade) return false;
+    if (kind !== 'all' && t.kind !== kind) return false;
+    if (missableOnly.checked && !t.missable) return false;
+    if (hideEarned.checked && earned.has(t.id)) return false;
+    if (q) {
+      const hay = (t.name + ' ' + t.description + ' ' + t.guide).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  listEl.replaceChildren();
+  for (const t of visible) {
+    const isEarned = earned.has(t.id);
+    const isHidden = t.hidden && !showSpoilers && !isEarned;
     const card = document.createElement('article');
-    card.className = 'card' + (earned.has(t.name) ? ' earned' : '');
-    const isSecret = t.hidden && !spoilers.checked && !earned.has(t.name);
-    const badges = `<span class="badge ${t.grade}">${t.grade}</span>` +
-      `<span class="badge kind">${t.kind}</span>` +
-      (t.missable ? '<span class="badge missable">Missable</span>' : '') +
-      (t.hidden ? '<span class="badge hidden">Hidden</span>' : '');
-    card.innerHTML = `<h3>${isSecret ? 'Hidden trophy' : t.name}</h3>` +
-      `<p class="desc">${isSecret ? 'A hidden story trophy. Earn it to reveal the name and description.' : t.description}</p>` +
-      badges +
-      (isSecret
-        ? '<p class="guide secret">Hidden until earned — turn on “Show story spoilers” to reveal it.</p>'
-        : `<p class="guide">${t.guide}</p>`) +
-      `<p class="sources">Sources: ${(t.sources || []).join(' · ')}</p>`;
-    const earn = document.createElement('label');
-    earn.className = 'earn';
+    card.className = 'card' + (isEarned ? ' earned' : '');
+    const title = document.createElement('h3');
+    title.textContent = isHidden ? 'Hidden trophy' : t.name;
+    const desc = document.createElement('p');
+    desc.className = 'desc';
+    desc.textContent = isHidden ? 'A hidden story trophy. Turn on “Show story spoilers” to reveal it.' : t.description;
+    const badges = document.createElement('div');
+    badges.className = 'badges';
+    const gradeBadge = document.createElement('span');
+    gradeBadge.className = 'badge ' + t.grade;
+    gradeBadge.textContent = t.grade;
+    badges.append(gradeBadge);
+    const kindBadge = document.createElement('span');
+    kindBadge.className = 'badge';
+    kindBadge.textContent = kindLabel(t.kind);
+    badges.append(kindBadge);
+    if (t.missable) {
+      const b = document.createElement('span');
+      b.className = 'badge missable';
+      b.textContent = 'Missable';
+      badges.append(b);
+    }
+    if (t.hidden) {
+      const b = document.createElement('span');
+      b.className = 'badge hidden';
+      b.textContent = 'Hidden';
+      badges.append(b);
+    }
+    const guide = document.createElement('p');
+    guide.className = 'guide';
+    guide.textContent = isHidden ? 'Complete the story to reveal this trophy.' : t.guide;
+    const sources = document.createElement('p');
+    sources.className = 'sources';
+    sources.textContent = 'Sources: ' + t.sources.join(' · ');
+    const label = document.createElement('label');
+    label.className = 'earned';
     const box = document.createElement('input');
     box.type = 'checkbox';
-    box.checked = earned.has(t.name);
+    box.checked = isEarned;
     box.addEventListener('change', () => {
-      if (box.checked) earned.add(t.name);
-      else earned.delete(t.name);
+      if (box.checked) earned.add(t.id); else earned.delete(t.id);
       save();
       render();
     });
-    earn.append(box, document.createTextNode('Earned'));
-    card.append(earn);
-    list.append(card);
+    label.append(box, document.createTextNode(' Earned'));
+    card.append(title, desc, badges, guide, sources, label);
+    listEl.append(card);
   }
-  document.getElementById('progress').textContent = `${earned.size} of ${doc.trophies.length} earned`;
-  document.getElementById('bar').style.width = `${(earned.size / doc.trophies.length) * 100}%`;
-  document.getElementById('count').textContent = `Showing ${shown} of ${doc.trophies.length} trophies` +
-    (spoilers.checked ? ' (spoilers shown)' : ' (story spoilers hidden)');
+
+  countEl.textContent = `Showing ${visible.length} of ${trophies.length} trophies` +
+    (showSpoilers ? ' (spoilers shown)' : ' (story spoilers hidden)');
+  progressEl.textContent = `${earned.size} of ${trophies.length} earned`;
+  barEl.style.width = `${(earned.size / trophies.length) * 100}%`;
 }
 
-document.getElementById('export').addEventListener('click', () => {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify([...earned])], { type: 'application/json' }));
-  a.download = 'gta6-trophy-progress.json';
-  a.click();
-});
-document.getElementById('import').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  earned = new Set(JSON.parse(await file.text()));
-  save();
-  render();
-});
-for (const el of [search, grade, kind, missableOnly, hideEarned, spoilers]) {
+for (const el of [searchEl, gradeEl, kindEl, missableOnly, hideEarned, spoilers]) {
   el.addEventListener('input', render);
   el.addEventListener('change', render);
 }
+
+exportBtn.addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify({ earned: [...earned] }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'gta6-trophy-progress.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+importFile.addEventListener('change', async () => {
+  const file = importFile.files[0];
+  if (!file) return;
+  try {
+    const obj = JSON.parse(await file.text());
+    const ids = Array.isArray(obj) ? obj : obj.earned;
+    if (Array.isArray(ids)) {
+      earned = new Set(ids.filter((id) => trophies.some((t) => t.id === id)));
+      save();
+      render();
+    }
+  } catch {
+    alert('Could not read that progress file.');
+  }
+  importFile.value = '';
+});
 
 // Deep links: #roadmap, #missables, #spoilers, #list. Filters apply before
 // the first render; scrolling happens after it, once the list exists.

@@ -20,12 +20,12 @@
 <section class="controls" aria-label="Filters">
   <label>Search <input id="search" type="search" placeholder="Trophy, mission, place&hellip;"></label>
   <label>Grade <select id="grade"><option value="all">All grades</option><option value="platinum">Platinum</option><option value="gold">Gold</option><option value="silver">Silver</option><option value="bronze">Bronze</option></select></label>
-  <label>Kind <select id="kind"><option value="all">All kinds</option><option value="story">Story</option><option value="contact">Contacts</option><option value="side">Strangers &amp; side</option><option value="activity">Activities</option><option value="collectible">Collectibles</option><option value="combat">Combat</option><option value="exploration">Exploration</option><option value="money">Money</option><option value="secret">Secrets</option><option value="completion">Completion</option></select></label>
+  <label>Kind <select id="kind"><option value="all">All kinds</option><option value="story">Story</option><option value="contact">Contacts</option><option value="side">Strangers &amp; side</option><option value="activity">Activities</option><option value="collectible">Collectibles</option><option value="combat">Combat</option><option value="exploration">Exploration</option><option value="money">Money</option><option value="secret">Secret</option><option value="completion">Completion</option><option value="platinum">Platinum</option></select></label>
   <label class="check"><input id="missableOnly" type="checkbox"> Missable only</label>
   <label class="check"><input id="hideEarned" type="checkbox"> Hide earned</label>
-  <label class="check" title="Hidden story trophies stay secret until you earn them"><input id="spoilers" type="checkbox"> Show story spoilers</label>
-  <button id="export" type="button">Export progress</button>
-  <label class="import">Import progress <input id="import" type="file" accept="application/json"></label>
+  <label class="check"><input id="spoilers" type="checkbox"> Show story spoilers</label>
+  <button id="exportBtn" type="button">Export progress</button>
+  <label class="import">Import progress <input id="importFile" type="file" accept="application/json,.json"></label>
 </section>
 
 <section id="roadmap" class="roadmap" aria-label="Roadmap to the platinum">
@@ -36,17 +36,18 @@
     <li><strong>Activities and collectibles.</strong> Shooting range golds, drone races, card sets, WAiNK spots, stunts and challenges — the checklist below tracks all of them, and the filters isolate each kind.</li>
     <li><strong>Combat, money and exploration.</strong> Bank vaults, armored trucks, vehicle discovery, garage properties and the 52 areas of Leonida. Then the 100% completion gold, and the platinum is yours.</li>
   </ol>
-  <p class="note">One trophy is missable: <strong>Positive Mental Attitude</strong> — meditate at all 18 spots before the story moves past them. Everything else can be cleaned up in free roam after the finale.</p>
+  <p class="callout">One trophy is missable: <strong>Positive Mental Attitude</strong> — meditate at all 18 spots before the story moves past them. Everything else can be cleaned up in free roam after the finale.</p>
 </section>
 
 <main>
-  <p id="count" class="count"></p>
+  <p id="count"></p>
   <div id="list" class="list"></div>
 </main>
 
 <footer>
   <p>Trophy names, descriptions and grades follow the official 55-trophy list for Grand Theft Auto VI (PlayStation 5). Guides are written for this page. Sources per trophy: Exophase trophy list and the PSNProfiles trophy guide. Progress is stored only in your browser (localStorage) — nothing leaves your device.</p>
 </footer>
+
 <script type="module" src="app.js"></script>
 </body>
 </html>

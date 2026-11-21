@@ -4,7 +4,7 @@
 [![rank](https://make.fun/badge/gta6-trophy-guide-01/ibrahimdiaz0x/gta6-trophy-guide-01/rank.svg)](https://make.fun/bounty/gta6-trophy-guide-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-trophy-guide-01)
 [![reward](https://make.fun/badge/gta6-trophy-guide-01/ibrahimdiaz0x/gta6-trophy-guide-01/reward.svg)](https://make.fun/bounty/gta6-trophy-guide-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-trophy-guide-01)
 
-Vice Coast Trophy Guide — an offline, static web app that tracks all 55 official Grand Theft Auto VI trophies (PlayStation 5): a real guide for every trophy in the player's own words, a platinum roadmap, filters by grade and kind, a spoiler setting that keeps hidden story trophies secret until earned, and the one missable trophy flagged up front.
+Vice Coast Trophy Guide — an offline tracker for all 55 official GTA VI trophies, with a guide for each, a platinum roadmap, filters and a spoiler setting.
 
 ## Run it
 
@@ -12,17 +12,33 @@ Vice Coast Trophy Guide — an offline, static web app that tracks all 55 offici
 node serve.ts
 ```
 
-Then open http://localhost:8080. No build step, no network calls: the guide is plain static files in `app/`, and progress is saved in the browser (localStorage) with export/import.
+Then open the address serve.ts prints. No build step, no network calls: the guide runs entirely in your browser, and your progress is stored only in localStorage.
 
-## How it works
+## What it covers
 
-- `app/data/trophies.json` — the official 55 trophies (name, description, grade) plus an original guide, kind, hidden/missable flags and sources for each.
-- `app/index.html`, `app/app.js`, `app/style.css` — the tracker: checklist, progress bar, search, grade/kind filters, missable-only view, spoiler setting, export/import. Deep links: `#roadmap`, `#missables`, `#spoilers`.
-- `main.ts` — copies `app/` and `screenshots/` to `/output` and writes `dossier.json` (via `vendor/makefun-frontend.ts`).
+- All 55 official GTA VI trophies (1 platinum, 2 gold, 6 silver, 46 bronze) in story order, each with its own guide written for this page.
+- A checklist that saves your progress in the browser, with export and import so you can move it to another device.
+- Filters by grade and kind, search, a missable-only view, a hide-earned toggle, and a spoiler setting that keeps hidden story trophies masked until you earn them or choose to reveal them.
+- A 4-step platinum roadmap, with the one missable trophy — Positive Mental Attitude, meditate at all 18 spots — called out before the story moves past it.
+- Trophy names, descriptions and grades follow the official 55-trophy list for Grand Theft Auto VI (PlayStation 5). Sources per trophy: Exophase trophy list and the PSNProfiles trophy guide.
+
+## Structure
+
+- `app/index.html` — page shell: hero, progress bar, filters, roadmap, checklist.
+- `app/style.css` — Vice City styling.
+- `app/app.js` — rendering, filters, progress storage, export/import, deep links.
+- `app/data/trophies.json` — the 55 trophies with grades, kinds, hidden/missable flags, sources and guides.
+- `shots.json` — the 4 screenshots below.
+- `screenshots/` — the screenshots.
+- `main.ts` — the make.fun program entrypoint (copies the app and screenshots, writes the dossier).
+- `serve.ts` — local static server for trying the guide.
 
 ## Screenshots
 
-1. Checklist — the full tracker. 2. Roadmap — the four-step path to the platinum. 3. Missables — the missable-only view. 4. Spoilers — hidden trophies revealed with the spoiler setting on.
+1. `1-cover.jpg` — the guide's front page: hero, progress and filters.
+2. `2-roadmap.jpg` — the platinum roadmap.
+3. `3-missables.jpg` — the missable-only view: just Positive Mental Attitude.
+4. `4-spoilers.jpg` — the full list with story spoilers revealed.
 
 ---
 
